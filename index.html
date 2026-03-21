@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Price Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f0f;
+  --surface:#1a1a1a;
+  --surface2:#242424;
+  --border:#2e2e2e;
+  --border2:#3a3a3a;
+  --text:#f0f0f0;
+  --text2:#a0a0a0;
+  --text3:#606060;
+  --green:#22c55e;
+  --green-dim:#16a34a;
+  --green-bg:rgba(34,197,94,0.08);
+  --amber:#f59e0b;
+  --amber-bg:rgba(245,158,11,0.08);
+  --red:#ef4444;
+  --red-bg:rgba(239,68,68,0.08);
+  --blue:#60a5fa;
+  --blue-bg:rgba(96,165,250,0.08);
+  --radius:10px;
+  --radius-lg:14px;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;line-height:1.5}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* Setup screen */
+#setup-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+.setup-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2.5rem;max-width:480px;width:100%}
+.setup-logo{font-size:28px;margin-bottom:4px}
+.setup-title{font-size:22px;font-weight:600;margin-bottom:6px}
+.setup-desc{color:var(--text2);font-size:13px;line-height:1.6;margin-bottom:1.5rem}
+.setup-label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.setup-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:10px 14px;margin-bottom:12px}
+.setup-input:focus{outline:none;border-color:#404040}
+.setup-hint{font-size:11px;color:var(--text3);margin-bottom:1.5rem;line-height:1.6}
+.setup-hint a{color:var(--text2)}
+
+/* App shell */
+#app{display:none;max-width:900px;margin:0 auto;padding:2rem 1rem}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;gap:12px;flex-wrap:wrap}
+.hdr-brand{display:flex;flex-direction:column;gap:2px}
+.hdr-title{font-size:20px;font-weight:600}
+.hdr-sub{font-size:12px;color:var(--text3)}
+.hdr-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Buttons */
+.btn{border:1px solid var(--border2);border-radius:var(--radius);background:transparent;color:var(--text);cursor:pointer;padding:8px 16px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .15s}
+.btn:hover{background:var(--surface2);border-color:#484848}
+.btn:disabled{opacity:0.35;cursor:default}
+.btn.primary{background:var(--text);color:var(--bg);border-color:transparent}
+.btn.primary:hover{opacity:0.88}
+.btn.sm{padding:5px 11px;font-size:12px}
+.btn.danger:hover{color:var(--red);border-color:var(--red)}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:2rem}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-val{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.stat-lbl{font-size:11px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
+
+/* Progress */
+#progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:1.5rem;display:none}
+.progress-label{font-size:12px;color:var(--text2);margin-bottom:8px}
+.progress-track{height:3px;background:var(--border2);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--green);border-radius:2px;transition:width .4s ease}
+
+/* Add panel */
+#add-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:1.5rem;display:none}
+#add-panel h3{font-size:15px;font-weight:500;margin-bottom:16px}
+.form-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.form-grid1{display:grid;grid-template-columns:1fr;margin-bottom:10px}
+@media(max-width:540px){.form-grid2{grid-template-columns:1fr}}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--text3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;padding:9px 12px}
+.field input:focus{outline:none;border-color:#505050}
+.field input::placeholder{color:var(--text3)}
+.form-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+
+/* Items */
+.items{display:flex;flex-direction:column;gap:8px}
+.item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:border-color .15s}
+.item:hover{border-color:var(--border2)}
+.item-main{display:grid;grid-template-columns:3px 1fr auto;cursor:pointer;align-items:stretch}
+.accent{width:3px;flex-shrink:0;transition:background .3s}
+.accent.good{background:var(--green)}
+.accent.close{background:var(--amber)}
+.accent.over{background:var(--red)}
+.accent.none,.accent.checking,.accent.error{background:var(--border)}
+.item-body{padding:12px 14px;min-width:0}
+.item-name{font-weight:500;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.item-url{font-size:11px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'DM Mono',monospace}
+.item-status{font-size:11px;margin-top:4px}
+.item-status.checking{color:var(--blue)}
+.item-status.error{color:var(--red)}
+.item-right{padding:12px 14px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.price-now{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;font-family:'DM Mono',monospace}
+.price-now.good{color:var(--green)}
+.price-now.close{color:var(--amber)}
+.price-now.over{color:var(--red)}
+.price-now.none{color:var(--text2)}
+.price-target{font-size:11px;color:var(--text3)}
+.badge{font-size:10px;padding:3px 8px;border-radius:99px;font-weight:500;white-space:nowrap}
+.badge.good{background:var(--green-bg);color:var(--green)}
+.badge.close{background:var(--amber-bg);color:var(--amber)}
+.badge.over{background:var(--red-bg);color:var(--red)}
+.badge.none{background:var(--surface2);color:var(--text3)}
+.badge.checking{background:var(--blue-bg);color:var(--blue)}
+.badge.error{background:var(--red-bg);color:var(--red)}
+
+/* Expanded */
+.expanded{border-top:1px solid var(--border);padding:14px 16px;display:none}
+.expanded.open{display:block}
+.exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px}
+@media(max-width:540px){.exp-grid{grid-template-columns:1fr}}
+.exp-lbl{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+.hist-table{width:100%;border-collapse:collapse;font-size:12px;font-family:'DM Mono',monospace}
+.hist-table th{color:var(--text3);font-weight:400;text-align:left;padding:3px 0;border-bottom:1px solid var(--border)}
+.hist-table td{padding:4px 0;color:var(--text2);border-bottom:1px solid var(--border)}
+.hist-table tr:last-child td{color:var(--text);font-weight:500;border-bottom:none}
+.hist-table tr:last-child td:first-child::before{content:"→ ";color:var(--green)}
+.exp-actions{display:flex;gap:6px;flex-wrap:wrap}
+.exp-note{font-size:11px;color:var(--text3);margin-top:6px}
+
+/* Trend chart */
+.chart-wrap{height:60px}
+
+/* Empty state */
+.empty{text-align:center;padding:4rem 2rem;color:var(--text3)}
+.empty-title{font-size:16px;font-weight:500;color:var(--text2);margin-bottom:6px}
+.empty-desc{font-size:13px;line-height:1.7}
+
+/* Notification bar */
+.notif-bar{background:var(--blue-bg);border:1px solid rgba(96,165,250,.2);border-radius:var(--radius);padding:10px 14px;margin-bottom:1rem;font-size:12px;color:var(--blue);display:flex;align-items:center;justify-content:space-between;gap:8px}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 16px;font-size:13px;color:var(--text);display:none;z-index:99;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+#toast.show{display:block}
+
+/* Section label */
+.section-lbl{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<!-- Setup screen -->
+<div id="setup-screen">
+  <div class="setup-box">
+    <div class="setup-logo">🏷️</div>
+    <div class="setup-title">Price Tracker</div>
+    <div class="setup-desc">Track prices across any Australian retailer — JB Hi-Fi, Kogan, Amazon AU, Harvey Norman and more. Get alerted when things hit your target price.</div>
+    <label class="setup-label">Your Anthropic API Key</label>
+    <input class="setup-input" id="api-key-input" type="password" placeholder="sk-ant-api03-..."/>
+    <div class="setup-hint">
+      Your key is stored only in this browser and never sent anywhere except Anthropic's API.<br>
+      Don't have one? Get one free at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> — price checks cost fractions of a cent each.
+    </div>
+    <button class="btn primary" id="btn-setup" style="width:100%">Get started →</button>
+  </div>
+</div>
+
+<!-- Main app -->
+<div id="app">
+  <div class="hdr">
+    <div class="hdr-brand">
+      <div class="hdr-title">🏷️ Price Tracker</div>
+      <div class="hdr-sub" id="mem-sub">Loading...</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn sm" id="btn-settings">⚙ API key</button>
+      <button class="btn sm" id="btn-check-all">Check all prices</button>
+      <button class="btn sm primary" id="btn-show-add">+ Add item</button>
+    </div>
+  </div>
+
+  <div id="notif-bar" class="notif-bar" style="display:none">
+    <span>Enable notifications to be alerted when prices drop.</span>
+    <button class="btn sm" id="btn-notif">Enable</button>
+  </div>
+
+  <div id="progress-wrap">
+    <div class="progress-label" id="progress-label">Checking prices...</div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div id="add-panel">
+    <h3>Add to watchlist</h3>
+    <div class="form-grid1"><div class="field"><label>Product name</label><input id="inp-name" placeholder="e.g. Sony WH-1000XM5 Headphones"/></div></div>
+    <div class="form-grid1"><div class="field"><label>Product URL</label><input id="inp-url" placeholder="https://www.jbhifi.com.au/products/..."/></div></div>
+    <div class="form-grid2">
+      <div class="field"><label>Target price (AUD $)</label><input id="inp-target" type="number" placeholder="e.g. 350"/></div>
+      <div class="field"><label>Notes / model number</label><input id="inp-notes" placeholder="e.g. WH1000XM5/B"/></div>
+    </div>
+    <div class="form-foot">
+      <button class="btn sm" id="btn-cancel">Cancel</button>
+      <button class="btn sm primary" id="btn-save">Add &amp; check price</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-val" id="s-total">0</div><div class="stat-lbl">Watching</div></div>
+    <div class="stat"><div class="stat-val" id="s-good" style="color:var(--green)">0</div><div class="stat-lbl">At target</div></div>
+    <div class="stat"><div class="stat-val" id="s-close" style="color:var(--amber)">0</div><div class="stat-lbl">Within 10%</div></div>
+    <div class="stat"><div class="stat-val" id="s-savings" style="color:var(--text2)">–</div><div class="stat-lbl">Above target $</div></div>
+  </div>
+
+  <div class="section-lbl">Watchlist</div>
+  <div id="items-list" class="items"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const LS_KEY='pt_items_v1', LS_PH=id=>'pt_ph_v1_'+id, LS_APIKEY='pt_apikey';
+let items=[], histories={}, checking=new Set(), expanded=new Set(), checkStatus={};
+let apiKey='';
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,5); }
+function fmt(p){ return p==null?'–':'$'+parseFloat(p).toFixed(2); }
+function fmtAUD(p){ return p==null?'–':'AUD $'+parseFloat(p).toFixed(2); }
+function relTime(ts){
+  if(!ts) return 'never';
+  const m=Math.floor((Date.now()-ts)/60000);
+  if(m<2) return 'just now';
+  if(m<60) return m+'m ago';
+  const h=Math.floor(m/60);
+  if(h<24) return h+'h ago';
+  return Math.floor(h/24)+'d ago';
+}
+function status(item){
+  if(item.currentPrice==null) return 'none';
+  const t=parseFloat(item.targetPrice);
+  if(!t) return 'none';
+  if(item.currentPrice<=t) return 'good';
+  if(item.currentPrice<=t*1.1) return 'close';
+  return 'over';
+}
+function badgeLabel(st,id){
+  if(checking.has(id)) return 'checking...';
+  if(checkStatus[id]==='error') return 'check failed';
+  if(st==='good') return 'at target!';
+  if(st==='close') return 'close';
+  if(st==='over') return 'above target';
+  return 'not checked';
+}
+
+function loadData(){
+  try{ const r=localStorage.getItem(LS_KEY); if(r) items=JSON.parse(r); }catch(e){ items=[]; }
+  for(const item of items){
+    try{ const r=localStorage.getItem(LS_PH(item.id)); histories[item.id]=r?JSON.parse(r):[]; }catch(e){ histories[item.id]=[]; }
+  }
+  updateMemSub();
+}
+function saveData(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(items)); }catch(e){} }
+function savePH(id){ try{ localStorage.setItem(LS_PH(id),JSON.stringify(histories[id]||[])); }catch(e){} }
+function updateMemSub(){
+  const sub=document.getElementById('mem-sub');
+  sub.textContent=items.length?`${items.length} item${items.length>1?'s':''} saved locally`:'No items yet — add something to watch';
+}
+
+function sparkSVG(id,W,H){
+  const ph=(histories[id]||[]).filter(p=>p.price!=null).slice(-20);
+  if(ph.length<2) return '<p style="font-size:11px;color:var(--text3);margin-top:4px">Need 2+ checks for trend</p>';
+  const prices=ph.map(p=>p.price);
+  const mn=Math.min(...prices), mx=Math.max(...prices), rng=mx-mn||1;
+  const pad=4;
+  const pts=prices.map((p,i)=>{
+    const x=pad+(i/(prices.length-1))*(W-pad*2);
+    const y=pad+(1-(p-mn)/rng)*(H-pad*2);
+    return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+  const item=items.find(x=>x.id===id);
+  const st=status(item);
+  const color=st==='good'?'#22c55e':st==='close'?'#f59e0b':'#ef4444';
+  const lastPt=pts.split(' ').pop().split(',');
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:${H}px">
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${lastPt[0]}" cy="${lastPt[1]}" r="3" fill="${color}"/>
+  </svg>`;
+}
+
+function renderItem(item){
+  const st=status(item);
+  const isChecking=checking.has(item.id);
+  const isExp=expanded.has(item.id);
+  const hasError=checkStatus[item.id]==='error';
+  const ph=(histories[item.id]||[]).filter(p=>p.price!=null);
+  const histRows=ph.slice(-6).reverse().map(p=>`<tr>
+    <td>${new Date(p.checkedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'2-digit'})}</td>
+    <td>${new Date(p.checkedAt).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}</td>
+    <td>${fmtAUD(p.price)}</td>
+  </tr>`).join('');
+
+  const statusMsg=isChecking?(checkStatus[item.id]||'searching...'):'';
+  const errMsg=!isChecking&&hasError?'Could not retrieve price — click Refresh to retry':'';
+  const priceClass=isChecking||hasError?'none':st;
+
+  return `<div class="item" data-id="${item.id}">
+    <div class="item-main" onclick="toggleExpand('${item.id}')">
+      <div class="accent ${isChecking?'checking':hasError?'error':st}"></div>
+      <div class="item-body">
+        <div class="item-name">${escHtml(item.name)}</div>
+        <div class="item-url">${item.url.replace(/^https?:\/\//,'').slice(0,60)}${item.notes?' · '+escHtml(item.notes):''}</div>
+        ${statusMsg?`<div class="item-status checking">${statusMsg}</div>`:''}
+        ${errMsg?`<div class="item-status error">${errMsg}</div>`:''}
+        ${!statusMsg&&!errMsg&&item.lastChecked?`<div class="item-status" style="color:var(--text3)">Checked ${relTime(item.lastChecked)}</div>`:''}
+      </div>
+      <div class="item-right">
+        <div class="price-now ${priceClass}">${isChecking?'…':fmtAUD(item.currentPrice)}</div>
+        <div class="price-target">target ${fmtAUD(item.targetPrice)}</div>
+        <span class="badge ${isChecking?'checking':hasError?'error':st}">${badgeLabel(st,item.id)}</span>
+      </div>
+    </div>
+    <div class="expanded ${isExp?'open':''}">
+      <div class="exp-grid">
+        <div>
+          <div class="exp-lbl">Price history</div>
+          ${ph.length>0?`<table class="hist-table"><thead><tr><th>Date</th><th>Time</th><th>Price</th></tr></thead><tbody>${histRows}</tbody></table>`:'<p style="font-size:11px;color:var(--text3)">No history yet — hit Refresh to check</p>'}
+        </div>
+        <div>
+          <div class="exp-lbl">Trend</div>
+          <div class="chart-wrap">${sparkSVG(item.id,200,56)}</div>
+          ${item.targetPrice&&item.currentPrice!=null?`<p style="font-size:11px;color:var(--text3);margin-top:6px">${item.currentPrice<=item.targetPrice?'✓ At or below your target price':'Still '+fmtAUD(parseFloat(item.currentPrice)-parseFloat(item.targetPrice))+' above target'}</p>`:''}
+        </div>
+      </div>
+      <div class="exp-actions">
+        <button class="btn sm" onclick="event.stopPropagation();checkOne('${item.id}')">Refresh price</button>
+        <button class="btn sm" onclick="event.stopPropagation();editTarget('${item.id}')">Edit target</button>
+        <button class="btn sm" onclick="event.stopPropagation();window.open('${escHtml(item.url)}','_blank')">Open page</button>
+        <button class="btn sm danger" onclick="event.stopPropagation();removeItem('${item.id}')">Remove</button>
+      </div>
+      <div class="exp-note">Added ${new Date(item.addedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'})}</div>
+    </div>
+  </div>`;
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function render(){
+  const el=document.getElementById('items-list');
+  el.innerHTML=items.length?items.map(renderItem).join(''):`<div class="empty">
+    <div class="empty-title">Your watchlist is empty</div>
+    <div class="empty-desc">Add products from any Aussie retailer.<br>JB Hi-Fi · Kogan · Amazon AU · Harvey Norman · Bing Lee · Officeworks</div>
+  </div>`;
+  updateStats();
+}
+
+function updateStats(){
+  document.getElementById('s-total').textContent=items.length;
+  document.getElementById('s-good').textContent=items.filter(i=>status(i)==='good').length;
+  document.getElementById('s-close').textContent=items.filter(i=>status(i)==='close').length;
+  const overspend=items.filter(i=>i.currentPrice!=null&&i.targetPrice!=null&&i.currentPrice>i.targetPrice)
+    .reduce((a,i)=>a+(i.currentPrice-i.targetPrice),0);
+  document.getElementById('s-savings').textContent=overspend>0?'$'+overspend.toFixed(0):'–';
+}
+
+async function callAPI(item){
+  const SYS=`You are an Australian retail price checking assistant. Search the web for the CURRENT retail price of the product. After searching, end your reply with a JSON object on its own line: {"price":299.99,"currency":"AUD","store":"JB Hi-Fi"}. If price cannot be found after searching: {"price":null}. No markdown fences around JSON.`;
+  let messages=[{role:'user',content:`Find current Australian retail price:\nProduct: ${item.name}\nURL: ${item.url}${item.notes?'\nNotes/model: '+item.notes:''}\n\nSearch then return JSON.`}];
+  for(let turn=0;turn<8;turn++){
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1024,tools:[{type:'web_search_20250305',name:'web_search'}],system:SYS,messages})
+    });
+    if(!res.ok){ const e=await res.json().catch(()=>{}); throw new Error(e?.error?.message||'HTTP '+res.status); }
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const content=data.content||[];
+    if(data.stop_reason==='end_turn'){
+      const allText=content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+      const m=allText.match(/\{[^{}]*"price"\s*:[^{}]*\}/);
+      if(m){ try{ return JSON.parse(m[0]); }catch(e){} }
+      return {price:null};
+    }
+    if(data.stop_reason==='tool_use'){
+      messages.push({role:'assistant',content});
+      const results=content.filter(b=>b.type==='tool_use').map(b=>({type:'tool_result',tool_use_id:b.id,content:'[search results processed]'}));
+      if(results.length) messages.push({role:'user',content:results});
+      continue;
+    }
+    break;
+  }
+  return {price:null};
+}
+
+function setItemStatus(id,msg){
+  checkStatus[id]=msg;
+  const el=document.querySelector(`[data-id="${id}"] .item-status.checking`);
+  if(el) el.textContent=msg||'';
+}
+
+window.checkOne=async function(id){
+  const item=items.find(i=>i.id===id);
+  if(!item||checking.has(id)) return;
+  checking.add(id);
+  checkStatus[id]='searching...';
+  render();
+  try{
+    const prev=item.currentPrice;
+    setItemStatus(id,'searching web...');
+    const res=await callAPI(item);
+    if(res.price!=null){
+      item.currentPrice=parseFloat(res.price);
+      item.currency='AUD';
+      if(!histories[id]) histories[id]=[];
+      histories[id].push({price:item.currentPrice,checkedAt:Date.now()});
+      if(histories[id].length>30) histories[id]=histories[id].slice(-30);
+      savePH(id);
+    }
+    item.lastChecked=Date.now();
+    saveData();
+    checkStatus[id]=res.price!=null?'ok':'error';
+    if(res.price!=null&&item.targetPrice&&item.currentPrice<=item.targetPrice&&(prev==null||prev>item.targetPrice)){
+      fireNotif(item);
+    }
+    showToast(res.price!=null?`${item.name.slice(0,30)}: ${fmtAUD(res.price)}`:'Could not find price for '+item.name.slice(0,30));
+  }catch(e){
+    checkStatus[id]='error';
+    showToast('Error: '+(e.message||'Unknown error').slice(0,60));
+  }
+  checking.delete(id);
+  updateMemSub();
+  render();
+};
+
+async function checkAll(){
+  if(!items.length) return;
+  const wrap=document.getElementById('progress-wrap');
+  const fill=document.getElementById('progress-fill');
+  const lbl=document.getElementById('progress-label');
+  const btn=document.getElementById('btn-check-all');
+  btn.disabled=true; btn.textContent='Checking...';
+  wrap.style.display='block'; fill.style.width='0%';
+  let done=0;
+  for(const item of items){
+    lbl.textContent=`Checking ${item.name.slice(0,35)}... (${done+1} of ${items.length})`;
+    fill.style.width=Math.round((done/items.length)*100)+'%';
+    await window.checkOne(item.id);
+    done++;
+    fill.style.width=Math.round((done/items.length)*100)+'%';
+  }
+  lbl.textContent=`All done — ${done} item${done>1?'s':''} checked`;
+  setTimeout(()=>{ wrap.style.display='none'; btn.disabled=false; btn.textContent='Check all prices'; },3000);
+}
+
+function fireNotif(item){
+  if(Notification.permission==='granted'){
+    new Notification('Price drop! 🎉',{body:`${item.name} is now ${fmtAUD(item.currentPrice)} — at or below your $${item.targetPrice} target!`,icon:'https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/72x72/1f3f7.png'});
+  }
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+function checkNotifPerm(){
+  const nb=document.getElementById('notif-bar');
+  nb.style.display=typeof Notification!=='undefined'&&Notification.permission==='default'?'flex':'none';
+}
+
+window.toggleExpand=function(id){ expanded.has(id)?expanded.delete(id):expanded.add(id); render(); };
+window.editTarget=function(id){
+  const item=items.find(i=>i.id===id);
+  if(!item) return;
+  const v=prompt(`New target price for:\n"${item.name}"\n\nCurrent target: ${fmtAUD(item.targetPrice)}`);
+  if(v===null) return;
+  const p=parseFloat(v);
+  if(!isNaN(p)&&p>0){ item.targetPrice=p; saveData(); render(); }
+};
+window.removeItem=function(id){
+  const item=items.find(i=>i.id===id);
+  if(!item||!confirm(`Remove "${item.name}" from your watchlist?`)) return;
+  items=items.filter(i=>i.id!==id);
+  delete histories[id];
+  try{ localStorage.removeItem(LS_PH(id)); }catch(e){}
+  saveData(); updateMemSub(); render();
+};
+
+// Setup
+document.getElementById('btn-setup').onclick=function(){
+  const key=document.getElementById('api-key-input').value.trim();
+  if(!key.startsWith('sk-ant-')){ alert('That doesn\'t look like a valid Anthropic API key.\nIt should start with sk-ant-'); return; }
+  apiKey=key;
+  try{ localStorage.setItem(LS_APIKEY,key); }catch(e){}
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  loadData(); render(); checkNotifPerm();
+};
+document.getElementById('api-key-input').onkeydown=function(e){ if(e.key==='Enter') document.getElementById('btn-setup').click(); };
+
+document.getElementById('btn-settings').onclick=function(){
+  const key=prompt('Enter new API key (leave blank to keep current):');
+  if(key&&key.trim().startsWith('sk-ant-')){ apiKey=key.trim(); try{ localStorage.setItem(LS_APIKEY,key.trim()); }catch(e){} showToast('API key updated'); }
+  else if(key!==null&&key!=='') alert('Invalid key — should start with sk-ant-');
+};
+
+document.getElementById('btn-notif').onclick=async function(){
+  await Notification.requestPermission(); checkNotifPerm();
+};
+document.getElementById('btn-show-add').onclick=function(){
+  document.getElementById('add-panel').style.display='block';
+  document.getElementById('inp-name').focus();
+};
+document.getElementById('btn-cancel').onclick=function(){ document.getElementById('add-panel').style.display='none'; };
+document.getElementById('btn-check-all').onclick=checkAll;
+document.getElementById('btn-save').onclick=async function(){
+  const name=document.getElementById('inp-name').value.trim();
+  const url=document.getElementById('inp-url').value.trim();
+  const target=document.getElementById('inp-target').value.trim();
+  const notes=document.getElementById('inp-notes').value.trim();
+  if(!name){ alert('Please enter a product name.'); return; }
+  if(!url||!url.startsWith('http')){ alert('Please enter a valid product URL starting with http.'); return; }
+  const item={id:uid(),name,url,targetPrice:target?parseFloat(target):null,notes:notes||null,currentPrice:null,currency:'AUD',lastChecked:null,addedAt:Date.now()};
+  items.unshift(item);
+  histories[item.id]=[];
+  saveData();
+  ['inp-name','inp-url','inp-target','inp-notes'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('add-panel').style.display='none';
+  updateMemSub(); render();
+  window.checkOne(item.id);
+};
+
+// Auto-load if key already saved
+const savedKey=localStorage.getItem(LS_APIKEY);
+if(savedKey&&savedKey.startsWith('sk-ant-')){
+  apiKey=savedKey;
+  document.getElementById('setup-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  loadData(); render(); checkNotifPerm();
+}
+</script>
+</body>
+</html>
