@@ -251,6 +251,18 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
       <button class="btn sm pri" id="btn-save-orkey" style="margin-top:10px">Save API key</button>
     </div>
     <div class="msec">
+      <div class="msec-title">Preferred retailers</div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:10px">
+        Used when searching for competitors. Your list is checked first, then general Australian retailers.
+      </div>
+      <div id="retailers-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center">
+        <input class="m-input" id="inp-retailer-name" placeholder="JB Hi-Fi" style="margin:0"/>
+        <input class="m-input" id="inp-retailer-url" placeholder="jbhifi.com.au" style="margin:0"/>
+        <button class="btn sm" id="btn-add-retailer">Add</button>
+      </div>
+    </div>
+    <div class="msec">
       <div class="msec-title">Email alerts</div>
       <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:8px">
         Get an email when a tracked item drops to your target price. Uses your account email automatically.<br><br>
@@ -394,6 +406,21 @@ let items=[], histories={}, checking=new Set(), expanded=new Set(), cstatus={};
 let orKey='', currentUser=null;
 let activeFilter='all', searchQ='';
 let syncDebounce=null, pendingImageUrl=null;
+let findingRetailers=new Set();
+
+const DEFAULT_RETAILERS=[
+  {name:'JB Hi-Fi',url:'jbhifi.com.au'},
+  {name:'Kogan',url:'kogan.com'},
+  {name:'Amazon AU',url:'amazon.com.au'},
+  {name:'Harvey Norman',url:'harveynorman.com.au'},
+  {name:'Bing Lee',url:'binglee.com.au'},
+  {name:'Officeworks',url:'officeworks.com.au'},
+  {name:'Chemist Warehouse',url:'chemistwarehouse.com.au'},
+  {name:'Big W',url:'bigw.com.au'},
+  {name:'Target AU',url:'target.com.au'},
+  {name:'Catch',url:'catch.com.au'},
+];
+let retailers=[];
 
 // ── Helpers ──
 const uid   = () => Date.now().toString(36)+Math.random().toString(36).slice(2,5);
@@ -454,6 +481,9 @@ async function dbLoad(){
       items=data.items||[];
       histories=data.histories||{};
       orKey=data.or_key||'';
+      retailers=data.retailers||[...DEFAULT_RETAILERS];
+    } else {
+      retailers=[...DEFAULT_RETAILERS];
     }
     setSyncStatus('ok','synced');
   }catch(e){
@@ -465,7 +495,7 @@ async function dbSave(){
   if(!currentUser) return;
   setSyncStatus('syncing','saving...');
   try{
-    const payload={user_id:currentUser.id,items,histories,or_key:orKey,updated_at:new Date().toISOString()};
+    const payload={user_id:currentUser.id,items,histories,or_key:orKey,retailers,updated_at:new Date().toISOString()};
     const {error}=await sb.from('watchlist').upsert(payload,{onConflict:'user_id'});
     if(error) throw error;
     setSyncStatus('ok','synced '+relTime(Date.now()));
@@ -659,9 +689,25 @@ function renderItem(item){
         <button class="btn sm" onclick="event.stopPropagation();checkOne('${item.id}')">↻ Refresh</button>
         <button class="btn sm" onclick="event.stopPropagation();editTarget('${item.id}')">Edit target</button>
         <button class="btn sm" onclick="event.stopPropagation();window.open('${esc(item.url)}','_blank')">Open page ↗</button>
-        <button class="btn sm" onclick="event.stopPropagation();toggleAlert('${item.id}')" style="${item.emailAlert?'color:var(--green)':''}">${item.emailAlert?'🔔 Alerts on':'🔕 Alerts off'}</button>
+        <button class="btn sm" onclick="event.stopPropagation();findRetailersForItem('${item.id}')" style="${findingRetailers.has(item.id)?'opacity:.5':''}" ${findingRetailers.has(item.id)?'disabled':''}>
+          ${findingRetailers.has(item.id)?'Searching...':'🔍 Find AU retailers'}
+        </button>
+        <button class="btn sm" onclick="event.stopPropagation();toggleAlert('${item.id}')" style="${item.emailAlert?'color:var(--green)':''}">
+          ${item.emailAlert?'🔔 Alerts on':'🔕 Alerts off'}
+        </button>
         <button class="btn sm" style="margin-left:auto;color:var(--text3)" onclick="event.stopPropagation();removeItem('${item.id}')">Remove</button>
       </div>
+      ${item.retailerLinks&&item.retailerLinks.length?`
+      <div style="padding:10px 0 0;border-top:1px solid var(--border);margin-top:10px">
+        <div class="dlbl" style="margin-bottom:8px">Also available at</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${item.retailerLinks.map(r=>`
+            <a href="${esc(r.url)}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--r);padding:5px 10px;text-decoration:none;font-size:12px;color:var(--text)">
+              <img src="https://www.google.com/s2/favicons?domain=${new URL(r.url).hostname}&sz=16" width="13" height="13" onerror="this.style.display='none'"/>
+              ${esc(r.name)} ↗
+            </a>`).join('')}
+        </div>
+      </div>`:''}
     </div>
   </div>`;
 }
@@ -690,6 +736,73 @@ function updateDash(){
   const ots=items.filter(i=>status(i)==='over').reduce((a,i)=>a+(i.currentPrice-i.targetPrice),0);
   document.getElementById('d-save').textContent=ots>0?'$'+ots.toFixed(0):'–';
 }
+
+// ── Find AU retailers ──
+async function findRetailersForItem(id){
+  const item=items.find(i=>i.id===id);
+  if(!item||findingRetailers.has(id)) return;
+  if(!orKey){showToast('Add your OpenRouter API key in ⚙ Settings first');return;}
+  findingRetailers.add(id);render();
+  try{
+    const retailerList=retailers.map(r=>`${r.name} (${r.url})`).join(', ');
+    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
+      body:JSON.stringify({
+        model:'anthropic/claude-haiku-4-5',
+        plugins:[{id:'web',max_results:8}],
+        response_format:{type:'json_object'},
+        messages:[{role:'user',content:`Find Australian retailers selling this EXACT product.
+
+Product: ${item.name}${item.notes?'\nExact model: '+item.notes:''}
+Original URL: ${item.url}
+
+IMPORTANT RULES:
+- Only find the EXACT product — same model number, same size, same variant
+- Check these preferred retailers FIRST: ${retailerList}
+- Then check any other Australian retailers or those that ship to Australia
+- Do NOT include the original retailer (${domain(item.url)})
+- Do NOT include international sites that don't ship to Australia
+- Only include retailers where you found a direct product page URL
+
+Return ONLY valid JSON:
+{"retailers":[{"name":"Kogan","url":"https://www.kogan.com/au/..."},{"name":"Amazon AU","url":"https://www.amazon.com.au/dp/..."}]}
+
+Maximum 5 retailers. If none found: {"retailers":[]}`}]
+      })
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const data=await res.json();
+    const text=data.choices?.[0]?.message?.content||'';
+    let result;
+    try{result=JSON.parse(text.replace(/```json\n?|```/g,'').trim());}
+    catch{result={retailers:[]};}
+    item.retailerLinks=result.retailers||[];
+    scheduleSave();
+    showToast(item.retailerLinks.length?`Found ${item.retailerLinks.length} retailer${item.retailerLinks.length>1?'s':''} for ${item.name.slice(0,25)}`:`No other retailers found for ${item.name.slice(0,25)}`);
+  }catch(e){
+    showToast('Search failed: '+(e.message||'Unknown').slice(0,50));
+  }
+  findingRetailers.delete(id);render();
+}
+window.findRetailersForItem=findRetailersForItem;
+
+// ── Retailer settings ──
+function renderRetailersList(){
+  const el=document.getElementById('retailers-list');
+  if(!el) return;
+  if(!retailers.length){el.innerHTML='<div style="font-size:11px;color:var(--text3)">No retailers added yet</div>';return;}
+  el.innerHTML=retailers.map((r,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px">
+      <img src="https://www.google.com/s2/favicons?domain=${r.url}&sz=16" width="14" height="14" style="opacity:.7" onerror="this.style.display='none'"/>
+      <span style="flex:1;font-size:12px;color:var(--text)">${esc(r.name)}</span>
+      <span style="font-size:11px;color:var(--text3)">${esc(r.url)}</span>
+      <button onclick="removeRetailer(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:0 4px">×</button>
+    </div>`).join('');
+}
+window.removeRetailer=function(i){
+  retailers.splice(i,1);scheduleSave();renderRetailersList();showToast('Retailer removed');
+};
 
 // ── OpenRouter calls ──
 async function callOR(item){
@@ -745,6 +858,20 @@ Return ONLY valid JSON:
   catch{const m=text.match(/\{[^{}]*"price"\s*:[^{}]*\}/);if(m)return JSON.parse(m[0]);return{price:null};}
 }
 
+function autoAddRetailer(url){
+  if(!url) return;
+  try{
+    const host=new URL(url.startsWith('http')?url:'https://'+url).hostname.replace('www.','');
+    if(!host) return;
+    if(retailers.find(r=>r.url===host)) return; // already in list
+    // Derive a readable name from the domain
+    const name=host.split('.')[0].replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    retailers.push({name,url:host});
+    scheduleSave();
+    showToast(`${name} added to your preferred retailers`);
+  }catch(e){}
+}
+
 async function lookupProduct(url){
   const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
     method:'POST',
@@ -792,6 +919,8 @@ window.checkOne=async function(id){
     if(res.allTimeLow) item.allTimeLow=parseFloat(res.allTimeLow);
     if(res.verdict) item.verdict=res.verdict;
     if(res.competitors&&res.competitors.length) item.competitors=res.competitors;
+    // Auto-add retailer from item URL if not already in list
+    autoAddRetailer(item.url);
     item.lastChecked=Date.now();
     cstatus[id]=res.price!=null?'ok':'error';
     if(res.price!=null&&item.targetPrice&&item.currentPrice<=item.targetPrice&&(prev==null||prev>item.targetPrice))fireNotif(item);
@@ -912,6 +1041,7 @@ document.getElementById('su-to-signin').onclick=()=>showScreen('screen-signin');
 // Settings
 document.getElementById('btn-settings').onclick=()=>{
   updateORPill();
+  renderRetailersList();
   document.getElementById('settings-modal').classList.add('open');
 };
 document.getElementById('modal-close').onclick=()=>document.getElementById('settings-modal').classList.remove('open');
@@ -940,7 +1070,17 @@ document.getElementById('btn-clear-all').onclick=async()=>{
   document.getElementById('settings-modal').classList.remove('open');
   render();showToast('All data cleared');
 };
-document.getElementById('modal-export').onclick=exportData;
+document.getElementById('btn-add-retailer').onclick=function(){
+  const name=document.getElementById('inp-retailer-name').value.trim();
+  const url=document.getElementById('inp-retailer-url').value.trim().replace(/^https?:\/\//,'').replace(/\/.*$/,'');
+  if(!name||!url){showToast('Please enter both a name and URL');return;}
+  if(retailers.find(r=>r.url===url)){showToast('That retailer is already in your list');return;}
+  retailers.push({name,url});
+  document.getElementById('inp-retailer-name').value='';
+  document.getElementById('inp-retailer-url').value='';
+  scheduleSave();renderRetailersList();
+  showToast(`${name} added to your retailers`);
+};
 document.getElementById('modal-import').onclick=()=>document.getElementById('import-file').click();
 document.getElementById('import-file').onchange=e=>{if(e.target.files[0]){importData(e.target.files[0]);e.target.value='';}};
 
@@ -1009,6 +1149,7 @@ document.getElementById('btn-save').onclick=function(){
   if(!url||!url.startsWith('http')){showToast('Please enter a valid URL');return;}
   const item={id:uid(),name,url,targetPrice:target?parseFloat(target):null,notes:notes||null,category:category||null,currentPrice:null,imageUrl:pendingImageUrl||null,currency:'AUD',lastChecked:null,addedAt:Date.now()};
   items.unshift(item);histories[item.id]=[];
+  autoAddRetailer(url);
   scheduleSave();closeAddPanel();render();
   window.checkOne(item.id);
 };
