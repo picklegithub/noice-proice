@@ -22,8 +22,12 @@ jobs:
 
       - name: Inject secrets
         run: |
+          echo "Before substitution:"
+          grep "SUPABASE" index.html
           sed -i "s|YOUR_SUPABASE_URL|${{ secrets.SUPABASE_URL }}|g" index.html
           sed -i "s|YOUR_SUPABASE_ANON_KEY|${{ secrets.SUPABASE_ANON_KEY }}|g" index.html
+          echo "After substitution:"
+          grep "SUPABASE" index.html
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
