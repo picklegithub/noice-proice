@@ -18,30 +18,63 @@
   --r:10px;--r-lg:14px;--r-xl:18px;
 }
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;line-height:1.5}
-a{color:var(--blue)}
-#setup{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
-.setup-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-xl);padding:2.5rem;max-width:460px;width:100%}
-.s-icon{font-size:36px;margin-bottom:1rem}
-.s-title{font-size:24px;font-weight:700;margin-bottom:6px;letter-spacing:-.3px}
-.s-desc{color:var(--text2);font-size:13px;line-height:1.7;margin-bottom:1.5rem}
-.s-lbl{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
-.s-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:11px 14px;margin-bottom:8px}
+
+/* ── Settings modal ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-xl);padding:2rem;max-width:520px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-title{font-size:17px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;line-height:1;padding:2px 6px}
+.modal-close:hover{color:var(--text)}
+.settings-section{margin-bottom:1.5rem}
+.settings-section:last-child{margin-bottom:0}
+.settings-section-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.s-lbl{display:block;font-size:11px;font-weight:500;color:var(--text3);margin-bottom:5px}
+.s-sublbl{font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:8px}
+.s-sublbl a{color:var(--text2);text-decoration:none}
+.s-sublbl a:hover{text-decoration:underline}
+.s-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:10px 14px;margin-bottom:8px}
 .s-input:focus{outline:none;border-color:#505058}
-.s-hint{font-size:11px;color:var(--text3);line-height:1.7;margin-bottom:1.5rem}
-.s-hint a{color:var(--text2)}
-#app{display:none}
+.s-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.s-status{font-size:11px;padding:4px 10px;border-radius:99px;font-weight:500}
+.s-status.ok{background:var(--green-bg);color:var(--green)}
+.s-status.missing{background:var(--surface2);color:var(--text3)}
+.s-status.error{background:var(--red-bg);color:var(--red)}
+.settings-save{width:100%;margin-top:1.5rem}
+
+/* ── App ── */
 .wrap{max-width:1100px;margin:0 auto;padding:1.5rem 1rem 4rem}
+
+/* ── Header ── */
 .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;gap:12px;flex-wrap:wrap}
 .hdr-l{display:flex;align-items:center;gap:10px}
 .hdr-title{font-size:18px;font-weight:700;letter-spacing:-.2px}
 .hdr-sub{font-size:12px;color:var(--text3);margin-top:1px}
-.hdr-r{display:flex;gap:8px;flex-wrap:wrap}
+.hdr-r{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sync-pill{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:4px 10px;cursor:default}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:background .3s;flex-shrink:0}
+.sync-dot.ok{background:var(--green)}
+.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite}
+.sync-dot.error{background:var(--red)}
+.sync-dot.off{background:var(--text3)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── Buttons ── */
 .btn{border:1px solid var(--border2);border-radius:var(--r);background:transparent;color:var(--text);cursor:pointer;padding:8px 16px;font-size:13px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s;white-space:nowrap}
 .btn:hover{background:var(--surface2)}
 .btn:disabled{opacity:.35;cursor:default}
 .btn.pri{background:var(--text);color:var(--bg);border-color:transparent;font-weight:600}
 .btn.pri:hover:not(:disabled){background:#d4d4d8}
 .btn.sm{padding:6px 13px;font-size:12px}
+.btn.xs{padding:4px 10px;font-size:11px}
+
+/* ── First-run banner ── */
+#setup-banner{background:var(--blue-bg);border:1px solid rgba(96,165,250,.25);border-radius:var(--r-lg);padding:14px 18px;margin-bottom:1.5rem;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.banner-txt{font-size:13px;color:var(--blue)}
+.banner-txt strong{font-weight:600}
+
+/* ── Dashboard ── */
 .dash{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.5rem}
 @media(max-width:750px){.dash{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:460px){.dash{grid-template-columns:repeat(2,1fr)}}
@@ -49,23 +82,28 @@ a{color:var(--blue)}
 .dc.hl{border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.03)}
 .dc-val{font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;line-height:1}
 .dc-lbl{font-size:10px;color:var(--text3);margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+
+/* ── Progress ── */
 #prog-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:1rem;display:none}
 .prog-top{display:flex;justify-content:space-between;margin-bottom:8px}
 .prog-lbl{font-size:12px;color:var(--text2)}
 .prog-pct{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text3)}
 .prog-track{height:3px;background:var(--border2);border-radius:2px;overflow:hidden}
 .prog-fill{height:100%;background:var(--green);border-radius:2px;transition:width .5s}
+
+/* ── Add panel ── */
 #add-panel{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px;margin-bottom:1.5rem;display:none}
 #add-panel h3{font-size:14px;font-weight:600;margin-bottom:16px}
 .fg1{display:grid;grid-template-columns:1fr;margin-bottom:10px}
-.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .fg3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:10px}
-@media(max-width:540px){.fg2,.fg3{grid-template-columns:1fr}}
+@media(max-width:540px){.fg3{grid-template-columns:1fr}}
 .field label{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
 .field input,.field select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:13px;font-family:'Inter',sans-serif;padding:9px 12px}
 .field input:focus,.field select:focus{outline:none;border-color:#505058}
 .field input::placeholder{color:var(--text3)}
 .form-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+
+/* ── Toolbar ── */
 .toolbar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
 .fb{border:1px solid var(--border);border-radius:99px;background:transparent;color:var(--text2);cursor:pointer;padding:5px 13px;font-size:12px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s}
 .fb:hover{color:var(--text);border-color:var(--border2)}
@@ -73,6 +111,8 @@ a{color:var(--blue)}
 .search-input{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;font-family:'Inter',sans-serif;padding:6px 12px;width:180px;margin-left:auto}
 .search-input:focus{outline:none;border-color:var(--border2)}
 .search-input::placeholder{color:var(--text3)}
+
+/* ── Items ── */
 .items-grid{display:flex;flex-direction:column;gap:8px}
 .item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;transition:border-color .2s}
 .item-card:hover{border-color:var(--border2)}
@@ -82,9 +122,11 @@ a{color:var(--blue)}
 .accent.close{background:var(--amber)}
 .accent.over{background:var(--red)}
 .accent.none,.accent.checking,.accent.error{background:var(--border)}
-.item-inner{display:flex;align-items:center;gap:12px;padding:13px 14px;min-width:0}
-.item-img{width:38px;height:38px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.item-img img{width:26px;height:26px;object-fit:contain}
+.item-inner{display:flex;align-items:center;gap:12px;padding:12px 14px;min-width:0}
+.item-img{width:46px;height:46px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.item-img img.prod{width:46px;height:46px;object-fit:cover}
+.item-img img.fav{width:22px;height:22px;object-fit:contain}
+.item-img .placeholder{font-size:22px;opacity:.3}
 .item-info{min-width:0;flex:1}
 .item-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .item-meta{font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -92,7 +134,7 @@ a{color:var(--blue)}
 .item-stxt.checking{color:var(--blue)}
 .item-stxt.error{color:var(--red)}
 .item-stxt.ok{color:var(--text3)}
-.item-prices{padding:13px 14px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;min-width:150px}
+.item-prices{padding:12px 14px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;min-width:150px}
 @media(max-width:500px){.item-prices{min-width:110px}}
 .price-now{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace}
 .price-now.good{color:var(--green)}
@@ -107,6 +149,8 @@ a{color:var(--blue)}
 .badge.none{background:var(--surface2);color:var(--text3)}
 .badge.checking{background:var(--blue-bg);color:var(--blue)}
 .badge.error{background:var(--red-bg);color:var(--red)}
+
+/* ── Expanded detail ── */
 .item-detail{border-top:1px solid var(--border);padding:16px;display:none;background:var(--surface2)}
 .item-detail.open{display:block}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:14px}
@@ -126,12 +170,19 @@ a{color:var(--blue)}
 .ps-v.g{color:var(--green)}
 .ps-v.r{color:var(--red)}
 .det-actions{display:flex;gap:6px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--border)}
+
+/* ── Notifications ── */
 .notif-bar{background:var(--blue-bg);border:1px solid rgba(96,165,250,.2);border-radius:var(--r);padding:10px 14px;margin-bottom:1rem;font-size:12px;color:var(--blue);display:flex;align-items:center;justify-content:space-between;gap:8px}
+
+/* ── Empty ── */
 .empty{text-align:center;padding:4rem 2rem;color:var(--text3)}
 .empty-icon{font-size:40px;margin-bottom:12px;opacity:.4}
 .empty-title{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:6px}
 .empty-desc{font-size:13px;line-height:1.7}
-#toast{position:fixed;bottom:20px;right:20px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 16px;font-size:13px;color:var(--text);display:none;z-index:999;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 16px;font-size:13px;color:var(--text);display:none;z-index:200;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.6)}
+
 .sec-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
@@ -139,170 +190,376 @@ a{color:var(--blue)}
 </head>
 <body>
 
-<div id="setup">
-  <div class="setup-card">
-    <div class="s-icon">🏷️</div>
-    <div class="s-title">Price Tracker</div>
-    <div class="s-desc">Track prices across any Aussie retailer — JB Hi-Fi, Kogan, Amazon AU, Harvey Norman and more. Get alerted when things hit your target.</div>
-    <label class="s-lbl">OpenRouter API Key</label>
-    <input class="s-input" id="key-input" type="password" placeholder="sk-or-v1-..."/>
-    <div class="s-hint">Stored only in this browser, only sent to OpenRouter.<br>Get a free key at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> — checks cost fractions of a cent.</div>
-    <button class="btn pri" id="btn-setup" style="width:100%;padding:11px">Get started →</button>
+<!-- ── Settings modal ── -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">⚙ Settings</div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">OpenRouter API key</div>
+      <div class="s-sublbl">Used for price checking via AI web search. Get a free key at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a></div>
+      <input class="s-input" id="set-or-key" type="password" placeholder="sk-or-v1-..."/>
+      <div class="s-row">
+        <span class="s-status" id="or-status">Not set</span>
+        <span style="font-size:11px;color:var(--text3)">Price checks cost ~$0.001 each</span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">GitHub token — cross-device sync</div>
+      <div class="s-sublbl">Syncs your wishlist across all devices via a private GitHub Gist. Optional — the tracker works without it.<br><br>
+        Create at <a href="https://github.com/settings/tokens/new" target="_blank">github.com/settings/tokens</a> → Generate new token (classic) → tick only <strong style="color:var(--text2)">gist</strong> → copy the token.
+      </div>
+      <input class="s-input" id="set-gh-key" type="password" placeholder="ghp_..."/>
+      <div class="s-row">
+        <span class="s-status" id="gh-status">Not set</span>
+        <span id="gist-link" style="font-size:11px;color:var(--text3)"></span>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Backup</div>
+      <div class="s-sublbl">Export your wishlist and history as a JSON file, or restore from a previous export.</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn sm" id="modal-export">↓ Export JSON</button>
+        <button class="btn sm" id="modal-import">↑ Import JSON</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Danger zone</div>
+      <button class="btn sm" id="btn-clear-data" style="color:var(--red);border-color:var(--red-bg)">Clear all data</button>
+    </div>
+
+    <button class="btn pri settings-save" id="settings-save">Save settings</button>
   </div>
 </div>
 
-<div id="app">
-  <div class="wrap">
-    <div class="hdr">
-      <div class="hdr-l">
-        <span style="font-size:22px">🏷️</span>
-        <div><div class="hdr-title">Price Tracker</div><div class="hdr-sub" id="mem-sub">Loading...</div></div>
-      </div>
-      <div class="hdr-r">
-        <button class="btn sm" id="btn-apikey">⚙ API key</button>
-        <button class="btn sm" id="btn-check-all">↻ Check all</button>
-        <button class="btn sm pri" id="btn-show-add">+ Add item</button>
+<!-- ── Main app ── -->
+<div class="wrap">
+  <div class="hdr">
+    <div class="hdr-l">
+      <span style="font-size:22px">🏷️</span>
+      <div>
+        <div class="hdr-title">Price Tracker</div>
+        <div class="hdr-sub" id="mem-sub">Loading...</div>
       </div>
     </div>
-
-    <div class="dash">
-      <div class="dc"><div class="dc-val" id="d-total">0</div><div class="dc-lbl">Watching</div></div>
-      <div class="dc hl"><div class="dc-val" id="d-good" style="color:var(--green)">0</div><div class="dc-lbl">At target</div></div>
-      <div class="dc"><div class="dc-val" id="d-close" style="color:var(--amber)">0</div><div class="dc-lbl">Within 10%</div></div>
-      <div class="dc"><div class="dc-val" id="d-over" style="color:var(--red)">0</div><div class="dc-lbl">Above target</div></div>
-      <div class="dc"><div class="dc-val" id="d-save" style="color:var(--text2);font-size:20px">–</div><div class="dc-lbl">Still to save</div></div>
-    </div>
-
-    <div id="notif-bar" class="notif-bar" style="display:none">
-      <span>Enable browser notifications to get alerted on price drops.</span>
-      <button class="btn sm" id="btn-notif">Enable</button>
-    </div>
-
-    <div id="prog-wrap">
-      <div class="prog-top"><div class="prog-lbl" id="prog-lbl">Checking...</div><div class="prog-pct" id="prog-pct">0%</div></div>
-      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-    </div>
-
-    <div id="add-panel">
-      <h3>Add to watchlist</h3>
-      <div class="fg1"><div class="field"><label>Product name</label><input id="inp-name" placeholder="e.g. Sony WH-1000XM5 Headphones"/></div></div>
-      <div class="fg1"><div class="field"><label>Product URL</label><input id="inp-url" placeholder="https://www.jbhifi.com.au/products/..."/></div></div>
-      <div class="fg3">
-        <div class="field"><label>Notes / model number</label><input id="inp-notes" placeholder="e.g. WH1000XM5/B"/></div>
-        <div class="field"><label>Target price (AUD)</label><input id="inp-target" type="number" placeholder="e.g. 350"/></div>
-        <div class="field"><label>Category</label>
-          <select id="inp-cat"><option value="">— none —</option><option>Headphones</option><option>TV</option><option>Laptop</option><option>Phone</option><option>Tablet</option><option>Gaming</option><option>Appliance</option><option>Camera</option><option>Other</option></select>
-        </div>
+    <div class="hdr-r">
+      <div class="sync-pill" id="sync-pill" title="Sync status">
+        <div class="sync-dot off" id="sync-dot"></div>
+        <span id="sync-lbl">local only</span>
       </div>
-      <div class="form-foot">
-        <button class="btn sm" id="btn-cancel">Cancel</button>
-        <button class="btn sm pri" id="btn-save">Add &amp; check price</button>
-      </div>
+      <button class="btn sm" id="btn-settings">⚙ Settings</button>
+      <button class="btn sm" id="btn-check-all">↻ Check all</button>
+      <button class="btn sm pri" id="btn-show-add">+ Add item</button>
     </div>
-
-    <div class="toolbar">
-      <button class="fb active" data-f="all">All</button>
-      <button class="fb" data-f="good">At target</button>
-      <button class="fb" data-f="close">Close</button>
-      <button class="fb" data-f="over">Above</button>
-      <button class="fb" data-f="none">Unchecked</button>
-      <input class="search-input" id="search-inp" placeholder="Search..."/>
-    </div>
-
-    <div class="sec-lbl" id="count-lbl">Watchlist</div>
-    <div id="items-grid" class="items-grid"></div>
   </div>
+
+  <!-- First-run banner -->
+  <div id="setup-banner">
+    <div class="banner-txt"><strong>Welcome!</strong> Add your OpenRouter API key in Settings to start checking prices. A GitHub token is optional but enables sync across all your devices.</div>
+    <button class="btn sm" onclick="openSettings()">Open settings →</button>
+  </div>
+
+  <!-- Notifications -->
+  <div id="notif-bar" class="notif-bar" style="display:none">
+    <span>Enable browser notifications to get alerted on price drops.</span>
+    <button class="btn sm" id="btn-notif">Enable</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dash">
+    <div class="dc"><div class="dc-val" id="d-total">0</div><div class="dc-lbl">Watching</div></div>
+    <div class="dc hl"><div class="dc-val" id="d-good" style="color:var(--green)">0</div><div class="dc-lbl">At target</div></div>
+    <div class="dc"><div class="dc-val" id="d-close" style="color:var(--amber)">0</div><div class="dc-lbl">Within 10%</div></div>
+    <div class="dc"><div class="dc-val" id="d-over" style="color:var(--red)">0</div><div class="dc-lbl">Above target</div></div>
+    <div class="dc"><div class="dc-val" id="d-save" style="font-size:20px;color:var(--text2)">–</div><div class="dc-lbl">Still to save</div></div>
+  </div>
+
+  <!-- Progress -->
+  <div id="prog-wrap">
+    <div class="prog-top"><div class="prog-lbl" id="prog-lbl">Checking...</div><div class="prog-pct" id="prog-pct">0%</div></div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- Add panel -->
+  <div id="add-panel">
+    <h3>Add to watchlist</h3>
+    <div class="fg1"><div class="field"><label>Product name</label><input id="inp-name" placeholder="e.g. Sony WH-1000XM5 Headphones"/></div></div>
+    <div class="fg1"><div class="field"><label>Product URL</label><input id="inp-url" placeholder="https://www.jbhifi.com.au/products/..."/></div></div>
+    <div class="fg3">
+      <div class="field"><label>Notes / model number</label><input id="inp-notes" placeholder="e.g. WH1000XM5/B"/></div>
+      <div class="field"><label>Target price (AUD)</label><input id="inp-target" type="number" placeholder="e.g. 350"/></div>
+      <div class="field"><label>Category</label>
+        <select id="inp-cat">
+          <option value="">— none —</option>
+          <option>Headphones</option><option>TV</option><option>Laptop</option>
+          <option>Phone</option><option>Tablet</option><option>Gaming</option>
+          <option>Appliance</option><option>Camera</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-foot">
+      <button class="btn sm" id="btn-cancel">Cancel</button>
+      <button class="btn sm pri" id="btn-save">Add &amp; check price</button>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="fb active" data-f="all">All</button>
+    <button class="fb" data-f="good">At target</button>
+    <button class="fb" data-f="close">Close</button>
+    <button class="fb" data-f="over">Above</button>
+    <button class="fb" data-f="none">Unchecked</button>
+    <input class="search-input" id="search-inp" placeholder="Search..."/>
+  </div>
+
+  <div class="sec-lbl" id="count-lbl">Watchlist</div>
+  <div id="items-grid" class="items-grid"></div>
 </div>
 
+<input type="file" id="import-file" accept=".json" style="display:none"/>
 <div id="toast"></div>
 
 <script>
-const WL='pt_wl_v6',PH=id=>'pt_ph_v6_'+id,KS='pt_or_key';
-let items=[],histories={},checking=new Set(),expanded=new Set(),cstatus={};
-let apiKey='',activeFilter='all',searchQ='';
+// ── KEYS — never change these ──
+const WL_KEY = 'pt_wl_v6';
+const PH_KEY = id => 'pt_ph_v6_' + id;
+const OR_LS  = 'pt_or_key';
+const GH_LS  = 'pt_gh_key';
+const GID_LS = 'pt_gist_id';
+const GIST_FILE = 'price-tracker-data.json';
 
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const fmtP=p=>p==null?'–':'$'+parseFloat(p).toFixed(2);
-const fmtA=p=>p==null?'–':'AUD '+fmtP(p);
-function relTime(ts){
-  if(!ts)return'never';
-  const m=Math.floor((Date.now()-ts)/60000);
-  if(m<2)return'just now';if(m<60)return m+'m ago';
-  const h=Math.floor(m/60);if(h<24)return h+'h ago';
+let items=[], histories={}, checking=new Set(), expanded=new Set(), cstatus={};
+let orKey='', ghKey='', gistId='';
+let activeFilter='all', searchQ='';
+let syncDebounce=null;
+
+// ── Helpers ──
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmtP = p => p==null ? '–' : '$'+parseFloat(p).toFixed(2);
+const fmtA = p => p==null ? '–' : 'AUD '+fmtP(p);
+const domain = url => { try { return new URL(url).hostname.replace('www.',''); } catch { return url; }};
+const favicon = url => { try { return `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`; } catch { return ''; }};
+
+function relTime(ts) {
+  if (!ts) return 'never';
+  const m = Math.floor((Date.now()-ts)/60000);
+  if (m<2) return 'just now'; if (m<60) return m+'m ago';
+  const h = Math.floor(m/60);
+  if (h<24) return h+'h ago';
   return Math.floor(h/24)+'d ago';
 }
-const domain=url=>{try{return new URL(url).hostname.replace('www.','')}catch{return url}};
-const favicon=url=>{try{return`https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`}catch{return''}};
-function status(item){
-  if(item.currentPrice==null)return'none';
-  const t=parseFloat(item.targetPrice);if(!t)return'none';
-  if(item.currentPrice<=t)return'good';
-  if(item.currentPrice<=t*1.1)return'close';
-  return'over';
+function status(item) {
+  if (item.currentPrice==null) return 'none';
+  const t = parseFloat(item.targetPrice); if (!t) return 'none';
+  if (item.currentPrice<=t) return 'good';
+  if (item.currentPrice<=t*1.1) return 'close';
+  return 'over';
 }
-function badgeLbl(st,id){
-  if(checking.has(id))return'checking...';
-  if(cstatus[id]==='error')return'check failed';
-  if(st==='good')return'✓ at target';
-  if(st==='close')return'close';
-  if(st==='over')return'above target';
-  return'not checked';
+function badgeLbl(st,id) {
+  if (checking.has(id)) return 'checking...';
+  if (cstatus[id]==='error') return 'check failed';
+  if (st==='good') return '✓ at target';
+  if (st==='close') return 'close';
+  if (st==='over') return 'above target';
+  return 'not checked';
 }
-function loadData(){
-  try{const r=localStorage.getItem(WL);if(r)items=JSON.parse(r)}catch{items=[]}
-  for(const i of items){try{const r=localStorage.getItem(PH(i.id));histories[i.id]=r?JSON.parse(r):[]}catch{histories[i.id]=[]}}
-  updateSub();
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',4000);
 }
-const saveData=()=>{try{localStorage.setItem(WL,JSON.stringify(items))}catch{}};
-const savePH=id=>{try{localStorage.setItem(PH(id),JSON.stringify(histories[id]||[]))}catch{}};
-function updateSub(){
-  document.getElementById('mem-sub').textContent=items.length?`${items.length} item${items.length>1?'s':''} tracked · saved in browser`:'Nothing tracked yet';
+function updateSub() {
+  document.getElementById('mem-sub').textContent = items.length
+    ? `${items.length} item${items.length>1?'s':''} tracked · ${ghKey?'synced via Gist':'saved locally'}`
+    : 'Nothing tracked yet';
 }
-function sparkSVG(id,W,H){
-  const ph=(histories[id]||[]).filter(p=>p.price!=null).slice(-20);
-  if(ph.length<2)return'<p style="font-size:11px;color:var(--text3)">Need 2+ checks for trend</p>';
-  const prices=ph.map(p=>p.price),mn=Math.min(...prices),mx=Math.max(...prices),rng=mx-mn||1,pad=5;
-  const pts=prices.map((p,i)=>{
-    const x=pad+(i/(prices.length-1))*(W-pad*2);
-    const y=pad+(1-(p-mn)/rng)*(H-pad*2);
+
+// ── Local storage ──
+function saveLocal() {
+  try { localStorage.setItem(WL_KEY, JSON.stringify(items)); } catch(e) {}
+}
+function savePHLocal(id) {
+  try { localStorage.setItem(PH_KEY(id), JSON.stringify(histories[id]||[])); } catch(e) {}
+}
+function loadLocal() {
+  // Auto-migrate any old storage key versions
+  ['pt_wl_v1','pt_wl_v2','pt_wl_v3','pt_wl_v4','pt_wl_v5'].forEach(k => {
+    try {
+      const old = localStorage.getItem(k);
+      if (old && !localStorage.getItem(WL_KEY)) {
+        localStorage.setItem(WL_KEY, old);
+        console.log('[Price Tracker] Migrated data from', k);
+      }
+    } catch(e) {}
+  });
+  try { const r=localStorage.getItem(WL_KEY); if(r) items=JSON.parse(r); } catch(e) { items=[]; }
+  for (const item of items) {
+    try { const r=localStorage.getItem(PH_KEY(item.id)); histories[item.id]=r?JSON.parse(r):[]; } catch(e) { histories[item.id]=[]; }
+  }
+}
+
+// ── GitHub Gist sync ──
+function setSyncStatus(state, label) {
+  document.getElementById('sync-dot').className = 'sync-dot ' + state;
+  document.getElementById('sync-lbl').textContent = label;
+}
+
+async function gistSave() {
+  if (!ghKey) return;
+  setSyncStatus('syncing','syncing...');
+  try {
+    const payload = {
+      items,
+      histories,
+      savedAt: Date.now()
+    };
+    const body = { files: { [GIST_FILE]: { content: JSON.stringify(payload, null, 2) } } };
+    let res;
+    if (gistId) {
+      res = await fetch(`https://api.github.com/gists/${gistId}`, {
+        method:'PATCH',
+        headers:{ 'Authorization':'token '+ghKey, 'Content-Type':'application/json' },
+        body: JSON.stringify(body)
+      });
+    } else {
+      body.description = 'Price Tracker data (auto-managed)';
+      body.public = false;
+      res = await fetch('https://api.github.com/gists', {
+        method:'POST',
+        headers:{ 'Authorization':'token '+ghKey, 'Content-Type':'application/json' },
+        body: JSON.stringify(body)
+      });
+    }
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const data = await res.json();
+    gistId = data.id;
+    try { localStorage.setItem(GID_LS, gistId); } catch(e) {}
+    setSyncStatus('ok','synced '+relTime(Date.now()));
+    document.getElementById('gist-link').innerHTML = `<a href="${data.html_url}" target="_blank" style="color:var(--text2)">view gist ↗</a>`;
+  } catch(e) {
+    setSyncStatus('error','sync failed');
+    console.error('[Gist save]', e);
+  }
+}
+
+async function gistLoad() {
+  if (!ghKey) return false;
+  setSyncStatus('syncing','loading...');
+  try {
+    // Find gist by stored ID or search for it
+    let id = gistId;
+    if (!id) {
+      const res = await fetch('https://api.github.com/gists?per_page=100', {
+        headers:{ 'Authorization':'token '+ghKey }
+      });
+      if (!res.ok) throw new Error('HTTP '+res.status);
+      const gists = await res.json();
+      const found = gists.find(g => g.files && g.files[GIST_FILE]);
+      if (found) { id = found.id; gistId = id; try { localStorage.setItem(GID_LS,id); } catch(e) {} }
+    }
+    if (!id) {
+      setSyncStatus('ok','no cloud data yet');
+      return false;
+    }
+    const res = await fetch(`https://api.github.com/gists/${id}`, {
+      headers:{ 'Authorization':'token '+ghKey }
+    });
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const gist = await res.json();
+    const fileContent = gist.files?.[GIST_FILE]?.content;
+    if (!fileContent) { setSyncStatus('ok','empty gist'); return false; }
+    const payload = JSON.parse(fileContent);
+    // Merge: gist wins if newer
+    if (payload.savedAt && payload.savedAt > (items[0]?.addedAt||0)) {
+      items = payload.items || [];
+      histories = payload.histories || {};
+      saveLocal();
+      for (const item of items) savePHLocal(item.id);
+    }
+    setSyncStatus('ok','synced '+relTime(Date.now()));
+    return true;
+  } catch(e) {
+    setSyncStatus('error','sync failed');
+    console.error('[Gist load]', e);
+    return false;
+  }
+}
+
+function scheduleSave() {
+  clearTimeout(syncDebounce);
+  saveLocal();
+  if (ghKey) { syncDebounce = setTimeout(gistSave, 1500); }
+}
+
+// ── Spark chart ──
+function sparkSVG(id, W, H) {
+  const ph = (histories[id]||[]).filter(p=>p.price!=null).slice(-20);
+  if (ph.length<2) return '<p style="font-size:11px;color:var(--text3)">Need 2+ checks for trend</p>';
+  const prices = ph.map(p=>p.price);
+  const mn=Math.min(...prices), mx=Math.max(...prices), rng=mx-mn||1, pad=5;
+  const pts = prices.map((p,i) => {
+    const x = pad+(i/(prices.length-1))*(W-pad*2);
+    const y = pad+(1-(p-mn)/rng)*(H-pad*2);
     return x.toFixed(1)+','+y.toFixed(1);
   }).join(' ');
-  const item=items.find(x=>x.id===id);
-  const st=status(item);
-  const stroke=st==='good'?'#4ade80':st==='close'?'#fbbf24':'#f87171';
-  const last=pts.split(' ').pop().split(',');
-  const first=pts.split(' ')[0].split(',');
-  const area=`M${first[0]},${H} L${pts.split(' ').join(' L')} L${last[0]},${H} Z`;
-  const gid='g'+id.slice(-4);
-  return`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:${H}px">
-    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${stroke}" stop-opacity="0.15"/><stop offset="100%" stop-color="${stroke}" stop-opacity="0"/></linearGradient></defs>
+  const item = items.find(x=>x.id===id);
+  const st = status(item);
+  const stroke = st==='good'?'#4ade80':st==='close'?'#fbbf24':'#f87171';
+  const last = pts.split(' ').pop().split(',');
+  const firstX = pts.split(' ')[0].split(',')[0];
+  const area = `M${firstX},${H} L${pts.split(' ').join(' L')} L${last[0]},${H} Z`;
+  const gid = 'g'+id.slice(-4);
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:${H}px">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${stroke}" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="${stroke}" stop-opacity="0"/>
+    </linearGradient></defs>
     <path d="${area}" fill="url(#${gid})"/>
     <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${stroke}"/>
   </svg>`;
 }
-function renderItem(item){
-  const st=status(item),isC=checking.has(item.id),isExp=expanded.has(item.id),isErr=cstatus[item.id]==='error';
-  const ph=(histories[item.id]||[]).filter(p=>p.price!=null);
-  const histRows=ph.slice(-6).reverse().map(p=>`<tr>
+
+// ── Render item ──
+function renderItem(item) {
+  const st=status(item), isC=checking.has(item.id), isExp=expanded.has(item.id), isErr=cstatus[item.id]==='error';
+  const ph = (histories[item.id]||[]).filter(p=>p.price!=null);
+  const histRows = ph.slice(-6).reverse().map(p=>`<tr>
     <td>${new Date(p.checkedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short'})}</td>
     <td>${new Date(p.checkedAt).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}</td>
     <td>${fmtA(p.price)}</td>
     <td style="color:var(--text3)">${p.store?esc(p.store.slice(0,14)):''}</td>
   </tr>`).join('');
-  const pClass=isC||isErr?'none':st;
-  const sTxt=isC?(cstatus[item.id]||'searching...'):isErr?'Check failed — click Refresh to retry':`Checked ${relTime(item.lastChecked)}`;
-  const sCls=isC?'checking':isErr?'error':'ok';
-  const phPrices=ph.map(p=>p.price);
-  const lo=phPrices.length?Math.min(...phPrices):null;
-  const hi=phPrices.length?Math.max(...phPrices):null;
-  const diff=item.currentPrice!=null&&item.targetPrice?item.currentPrice-item.targetPrice:null;
-  return`<div class="item-card" data-id="${item.id}">
+  const pClass = isC||isErr?'none':st;
+  const sTxt = isC?(cstatus[item.id]||'searching...'): isErr?'Check failed — click Refresh to retry':`Checked ${relTime(item.lastChecked)}`;
+  const sCls = isC?'checking':isErr?'error':'ok';
+  const phPrices = ph.map(p=>p.price);
+  const lo = phPrices.length?Math.min(...phPrices):null;
+  const hi = phPrices.length?Math.max(...phPrices):null;
+  const diff = item.currentPrice!=null&&item.targetPrice ? item.currentPrice-item.targetPrice : null;
+
+  // Image: prefer stored product image, fall back to favicon
+  let imgHtml;
+  if (item.imageUrl) {
+    imgHtml = `<img class="prod" src="${esc(item.imageUrl)}" alt="" onerror="this.parentNode.innerHTML='<span class=placeholder>🛍️</span>'" loading="lazy"/>`;
+  } else {
+    const fav = favicon(item.url);
+    imgHtml = fav ? `<img class="fav" src="${fav}" alt="" onerror="this.parentNode.innerHTML='<span class=placeholder>🛍️</span>'" loading="lazy"/>` : '<span class="placeholder">🛍️</span>';
+  }
+
+  return `<div class="item-card" data-id="${item.id}">
     <div class="item-row" onclick="toggleExp('${item.id}')">
       <div class="accent ${isC?'checking':isErr?'error':st}"></div>
       <div class="item-inner">
-        <div class="item-img"><img src="${favicon(item.url)}" alt="" onerror="this.style.display='none'" loading="lazy"/></div>
+        <div class="item-img">${imgHtml}</div>
         <div class="item-info">
           <div class="item-name">${esc(item.name)}${item.category?` <span style="font-size:10px;color:var(--text3);font-weight:400">${esc(item.category)}</span>`:''}</div>
           <div class="item-meta">${esc(domain(item.url))}${item.notes?' · '+esc(item.notes):''}</div>
@@ -344,166 +601,279 @@ function renderItem(item){
     </div>
   </div>`;
 }
-function filtered(){
-  let l=items;
-  if(activeFilter!=='all')l=l.filter(i=>status(i)===activeFilter);
-  if(searchQ)l=l.filter(i=>i.name.toLowerCase().includes(searchQ)||(i.notes||'').toLowerCase().includes(searchQ)||domain(i.url).includes(searchQ));
+
+function filtered() {
+  let l = items;
+  if (activeFilter!=='all') l = l.filter(i=>status(i)===activeFilter);
+  if (searchQ) l = l.filter(i=>i.name.toLowerCase().includes(searchQ)||(i.notes||'').toLowerCase().includes(searchQ)||domain(i.url).includes(searchQ));
   return l;
 }
-function render(){
-  const l=filtered();
-  document.getElementById('count-lbl').textContent=`Watchlist · ${l.length} item${l.length!==1?'s':''}`;
-  document.getElementById('items-grid').innerHTML=l.length?l.map(renderItem).join(''):`<div class="empty"><div class="empty-icon">🛒</div><div class="empty-title">${items.length?'No items match':'Watchlist is empty'}</div><div class="empty-desc">${items.length?'Try a different filter.':'Add products from JB Hi-Fi, Kogan, Amazon AU, Harvey Norman, Bing Lee, Officeworks and more.'}</div></div>`;
-  updateDash();updateSub();
+
+function render() {
+  const l = filtered();
+  document.getElementById('count-lbl').textContent = `Watchlist · ${l.length} item${l.length!==1?'s':''}`;
+  document.getElementById('items-grid').innerHTML = l.length ? l.map(renderItem).join('') :
+    `<div class="empty"><div class="empty-icon">🛒</div>
+     <div class="empty-title">${items.length?'No items match':'Watchlist is empty'}</div>
+     <div class="empty-desc">${items.length?'Try a different filter.':'Add products from JB Hi-Fi, Kogan, Amazon AU,<br>Harvey Norman, Bing Lee, Officeworks and more.'}</div></div>`;
+  updateDash(); updateSub();
 }
-function updateDash(){
-  document.getElementById('d-total').textContent=items.length;
-  document.getElementById('d-good').textContent=items.filter(i=>status(i)==='good').length;
-  document.getElementById('d-close').textContent=items.filter(i=>status(i)==='close').length;
-  document.getElementById('d-over').textContent=items.filter(i=>status(i)==='over').length;
-  const ots=items.filter(i=>status(i)==='over').reduce((a,i)=>a+(i.currentPrice-i.targetPrice),0);
-  document.getElementById('d-save').textContent=ots>0?'$'+ots.toFixed(0):'–';
+
+function updateDash() {
+  document.getElementById('d-total').textContent = items.length;
+  document.getElementById('d-good').textContent = items.filter(i=>status(i)==='good').length;
+  document.getElementById('d-close').textContent = items.filter(i=>status(i)==='close').length;
+  document.getElementById('d-over').textContent = items.filter(i=>status(i)==='over').length;
+  const ots = items.filter(i=>status(i)==='over').reduce((a,i)=>a+(i.currentPrice-i.targetPrice),0);
+  document.getElementById('d-save').textContent = ots>0 ? '$'+ots.toFixed(0) : '–';
 }
-async function callOR(item){
-  const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
+
+// ── Price check via OpenRouter ──
+async function callOR(item) {
+  const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey,'HTTP-Referer':'https://price-tracker.github.io','X-Title':'Price Tracker'},
-    body:JSON.stringify({
-      model:'anthropic/claude-haiku-4-5',
-      plugins:[{id:'web',max_results:5}],
-      response_format:{type:'json_object'},
-      messages:[{role:'user',content:`You are an Australian retail price checker. Search for the current retail price of this product in Australia.
+    headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+orKey, 'HTTP-Referer':'https://price-tracker.pages.dev', 'X-Title':'Price Tracker' },
+    body: JSON.stringify({
+      model: 'anthropic/claude-haiku-4-5',
+      plugins: [{ id:'web', max_results:5 }],
+      response_format: { type:'json_object' },
+      messages: [{
+        role:'user',
+        content:`You are an Australian retail price checker. Search for the current retail price AND the main product image URL for this item.
 
 Product: ${item.name}
-URL: ${item.url}${item.notes?'\nModel/notes: '+item.notes:''}
+URL: ${item.url}${item.notes?'\nModel: '+item.notes:''}
 
-Return ONLY valid JSON (no other text):
-{"price": 299.99, "currency": "AUD", "store": "JB Hi-Fi"}
+Return ONLY valid JSON:
+{"price": 299.99, "currency": "AUD", "store": "JB Hi-Fi", "imageUrl": "https://...product-image.jpg"}
 
-If price cannot be found after searching: {"price": null}`}]
+Rules:
+- price must be a number in AUD, or null if not found
+- imageUrl should be a direct link to the product image (jpg/png/webp), or null if not found
+- store is the retailer name`
+      }]
     })
   });
-  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||'HTTP '+res.status)}
-  const data=await res.json();
-  const text=data.choices?.[0]?.message?.content||'';
-  try{return JSON.parse(text.replace(/```json\n?|```/g,'').trim())}catch{
-    const m=text.match(/\{[^{}]*"price"\s*:[^{}]*\}/);
-    if(m)return JSON.parse(m[0]);
-    return{price:null};
+  if (!res.ok) { const e=await res.json().catch(()=>({})); throw new Error(e?.error?.message||'HTTP '+res.status); }
+  const data = await res.json();
+  const text = data.choices?.[0]?.message?.content || '';
+  try { return JSON.parse(text.replace(/```json\n?|```/g,'').trim()); }
+  catch {
+    const m = text.match(/\{[^{}]*"price"\s*:[^{}]*\}/);
+    if (m) return JSON.parse(m[0]);
+    return { price:null };
   }
 }
-window.checkOne=async function(id){
-  const item=items.find(i=>i.id===id);
-  if(!item||checking.has(id))return;
-  checking.add(id);cstatus[id]='searching...';render();
-  try{
-    const prev=item.currentPrice;
-    const res=await callOR(item);
-    if(res.price!=null){
-      item.currentPrice=parseFloat(res.price);item.currency='AUD';
-      if(!histories[id])histories[id]=[];
-      histories[id].push({price:item.currentPrice,checkedAt:Date.now(),store:res.store||null});
-      if(histories[id].length>30)histories[id]=histories[id].slice(-30);
-      savePH(id);
+
+window.checkOne = async function(id) {
+  const item = items.find(i=>i.id===id);
+  if (!item || checking.has(id)) return;
+  if (!orKey) { showToast('Add your OpenRouter API key in ⚙ Settings first'); return; }
+  checking.add(id); cstatus[id]='searching...'; render();
+  try {
+    const prev = item.currentPrice;
+    const res = await callOR(item);
+    if (res.price!=null) {
+      item.currentPrice = parseFloat(res.price); item.currency='AUD';
+      if (!histories[id]) histories[id]=[];
+      histories[id].push({ price:item.currentPrice, checkedAt:Date.now(), store:res.store||null });
+      if (histories[id].length>30) histories[id]=histories[id].slice(-30);
+      savePHLocal(id);
     }
-    item.lastChecked=Date.now();saveData();
-    cstatus[id]=res.price!=null?'ok':'error';
-    if(res.price!=null&&item.targetPrice&&item.currentPrice<=item.targetPrice&&(prev==null||prev>item.targetPrice))fireNotif(item);
-    showToast(res.price!=null?`${item.name.slice(0,28)}: ${fmtA(res.price)}${res.store?' @ '+res.store.slice(0,18):''}`:item.name.slice(0,30)+': price not found');
-  }catch(e){
-    item.lastChecked=Date.now();cstatus[id]='error';saveData();
+    // Store product image if found and not already set
+    if (res.imageUrl && !item.imageUrl) item.imageUrl = res.imageUrl;
+    item.lastChecked = Date.now();
+    cstatus[id] = res.price!=null ? 'ok' : 'error';
+    if (res.price!=null && item.targetPrice && item.currentPrice<=item.targetPrice && (prev==null||prev>item.targetPrice)) fireNotif(item);
+    scheduleSave();
+    showToast(res.price!=null ? `${item.name.slice(0,28)}: ${fmtA(res.price)}${res.store?' @ '+res.store.slice(0,18):''}` : item.name.slice(0,30)+': price not found');
+  } catch(e) {
+    item.lastChecked = Date.now(); cstatus[id]='error'; saveLocal();
     showToast('Error: '+(e.message||'Unknown').slice(0,60));
   }
-  checking.delete(id);render();
+  checking.delete(id); render();
 };
-async function checkAll(){
-  if(!items.length)return;
-  const btn=document.getElementById('btn-check-all');
+
+async function checkAll() {
+  if (!items.length) return;
+  if (!orKey) { showToast('Add your OpenRouter API key in ⚙ Settings first'); return; }
+  const btn = document.getElementById('btn-check-all');
   document.getElementById('prog-wrap').style.display='block';
-  btn.disabled=true;btn.textContent='Checking...';
+  btn.disabled=true; btn.textContent='Checking...';
   let done=0;
-  for(const item of items){
-    document.getElementById('prog-lbl').textContent=`Checking: ${item.name.slice(0,40)}`;
-    const p=Math.round((done/items.length)*100);
+  for (const item of items) {
+    document.getElementById('prog-lbl').textContent = `Checking: ${item.name.slice(0,40)}`;
+    const p = Math.round((done/items.length)*100);
     document.getElementById('prog-fill').style.width=p+'%';
     document.getElementById('prog-pct').textContent=p+'%';
-    await window.checkOne(item.id);done++;
+    await window.checkOne(item.id); done++;
     document.getElementById('prog-fill').style.width=Math.round((done/items.length)*100)+'%';
     document.getElementById('prog-pct').textContent=Math.round((done/items.length)*100)+'%';
   }
   document.getElementById('prog-lbl').textContent=`Done — ${done} item${done>1?'s':''} checked`;
   document.getElementById('prog-pct').textContent='100%';
-  setTimeout(()=>{document.getElementById('prog-wrap').style.display='none';btn.disabled=false;btn.textContent='↻ Check all';},3000);
+  setTimeout(()=>{ document.getElementById('prog-wrap').style.display='none'; btn.disabled=false; btn.textContent='↻ Check all'; }, 3000);
 }
-function fireNotif(item){
-  if(Notification.permission==='granted')new Notification('Price drop! 🎉',{body:`${item.name} is now ${fmtA(item.currentPrice)} — at or below your target!`});
+
+function fireNotif(item) {
+  if (Notification.permission==='granted')
+    new Notification('Price drop! 🎉', { body:`${item.name} is now ${fmtA(item.currentPrice)} — at or below your target!` });
 }
-function showToast(msg){
-  const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';
-  clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',4000);
+
+// ── Settings modal ──
+function openSettings() {
+  document.getElementById('set-or-key').value = orKey ? '••••••••' : '';
+  document.getElementById('set-gh-key').value = ghKey ? '••••••••' : '';
+  document.getElementById('or-status').textContent = orKey ? 'Key saved' : 'Not set';
+  document.getElementById('or-status').className = 's-status ' + (orKey?'ok':'missing');
+  document.getElementById('gh-status').textContent = ghKey ? 'Token saved' : 'Not set';
+  document.getElementById('gh-status').className = 's-status ' + (ghKey?'ok':'missing');
+  document.getElementById('settings-modal').classList.add('open');
 }
-function checkNotifPerm(){
-  document.getElementById('notif-bar').style.display=typeof Notification!=='undefined'&&Notification.permission==='default'?'flex':'none';
-}
-window.toggleExp=id=>{expanded.has(id)?expanded.delete(id):expanded.add(id);render()};
-window.editTarget=id=>{
-  const item=items.find(i=>i.id===id);if(!item)return;
-  const v=prompt(`New target price for:\n"${item.name}"\n\nCurrent: ${fmtA(item.targetPrice)}`);
-  if(v===null)return;const p=parseFloat(v);
-  if(!isNaN(p)&&p>0){item.targetPrice=p;saveData();render();}
+window.openSettings = openSettings;
+
+document.getElementById('modal-close').onclick = () => document.getElementById('settings-modal').classList.remove('open');
+document.getElementById('settings-modal').onclick = function(e) { if(e.target===this) this.classList.remove('open'); };
+
+document.getElementById('settings-save').onclick = function() {
+  const orVal = document.getElementById('set-or-key').value.trim();
+  const ghVal = document.getElementById('set-gh-key').value.trim();
+  if (orVal && orVal!=='••••••••') {
+    if (!orVal.startsWith('sk-or-')) { showToast('OpenRouter key should start with sk-or-'); return; }
+    orKey = orVal; try { localStorage.setItem(OR_LS,orKey); } catch(e) {}
+  }
+  if (ghVal && ghVal!=='••••••••') {
+    if (!ghVal.startsWith('ghp_') && !ghVal.startsWith('github_pat_')) { showToast('GitHub token should start with ghp_ or github_pat_'); return; }
+    ghKey = ghVal; gistId=''; try { localStorage.setItem(GH_LS,ghKey); localStorage.removeItem(GID_LS); } catch(e) {}
+  }
+  document.getElementById('settings-modal').classList.remove('open');
+  document.getElementById('setup-banner').style.display='none';
+  updateSub();
+  if (ghKey) { setSyncStatus('syncing','connecting...'); gistLoad().then(loaded=>{ if(loaded) render(); gistSave(); }); }
+  showToast('Settings saved');
 };
-window.removeItem=id=>{
-  const item=items.find(i=>i.id===id);
-  if(!item||!confirm(`Remove "${item.name}"?`))return;
-  items=items.filter(i=>i.id!==id);delete histories[id];
-  try{localStorage.removeItem(PH(id))}catch{}
-  saveData();render();
+
+// ── Export / Import ──
+function exportData() {
+  const payload = { version:6, exportedAt:new Date().toISOString(), items, histories };
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `price-tracker-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showToast('Exported successfully');
+}
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const payload = JSON.parse(e.target.result);
+      if (!payload.items) throw new Error('Invalid file');
+      if (!confirm(`Import ${payload.items.length} items? This will merge with your current watchlist.`)) return;
+      const existingIds = new Set(items.map(i=>i.id));
+      const newItems = payload.items.filter(i=>!existingIds.has(i.id));
+      items = [...newItems, ...items];
+      if (payload.histories) Object.assign(histories, payload.histories);
+      scheduleSave();
+      render();
+      showToast(`Imported ${newItems.length} new item${newItems.length!==1?'s':''}`);
+    } catch(err) { showToast('Import failed: invalid file'); }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('btn-export').onclick = exportData;
+document.getElementById('btn-import').onclick = () => document.getElementById('import-file').click();
+document.getElementById('modal-export').onclick = exportData;
+document.getElementById('modal-import').onclick = () => document.getElementById('import-file').click();
+document.getElementById('import-file').onchange = e => { if(e.target.files[0]) { importData(e.target.files[0]); e.target.value=''; } };
+
+document.getElementById('btn-clear-data').onclick = function() {
+  if (!confirm('Delete ALL items, history and settings? This cannot be undone.')) return;
+  items=[]; histories={};
+  try { Object.keys(localStorage).filter(k=>k.startsWith('pt_')).forEach(k=>localStorage.removeItem(k)); } catch(e) {}
+  orKey=''; ghKey=''; gistId='';
+  document.getElementById('settings-modal').classList.remove('open');
+  document.getElementById('setup-banner').style.display='flex';
+  render(); showToast('All data cleared');
 };
+
+// ── Interactions ──
+window.toggleExp = id => { expanded.has(id)?expanded.delete(id):expanded.add(id); render(); };
+window.editTarget = id => {
+  const item = items.find(i=>i.id===id); if (!item) return;
+  const v = prompt(`New target price for:\n"${item.name}"\n\nCurrent: ${fmtA(item.targetPrice)}`);
+  if (v===null) return; const p=parseFloat(v);
+  if (!isNaN(p)&&p>0) { item.targetPrice=p; scheduleSave(); render(); }
+};
+window.removeItem = id => {
+  const item = items.find(i=>i.id===id);
+  if (!item||!confirm(`Remove "${item.name}"?`)) return;
+  items=items.filter(i=>i.id!==id); delete histories[id];
+  try { localStorage.removeItem(PH_KEY(id)); } catch(e) {}
+  scheduleSave(); render();
+};
+
 document.querySelectorAll('.fb').forEach(b=>b.onclick=function(){
   document.querySelectorAll('.fb').forEach(x=>x.classList.remove('active'));
-  this.classList.add('active');activeFilter=this.dataset.f;render();
+  this.classList.add('active'); activeFilter=this.dataset.f; render();
 });
-document.getElementById('search-inp').oninput=function(){searchQ=this.value.toLowerCase().trim();render()};
-function startApp(key){
-  apiKey=key;
-  document.getElementById('setup').style.display='none';
-  document.getElementById('app').style.display='block';
-  loadData();render();checkNotifPerm();
-}
-document.getElementById('btn-setup').onclick=function(){
-  const key=document.getElementById('key-input').value.trim();
-  if(!key.startsWith('sk-or-')){alert("That doesn't look like an OpenRouter key.\nIt should start with sk-or-");return}
-  try{localStorage.setItem(KS,key)}catch{}
-  startApp(key);
-};
-document.getElementById('key-input').onkeydown=e=>{if(e.key==='Enter')document.getElementById('btn-setup').click()};
-document.getElementById('btn-apikey').onclick=function(){
-  const k=prompt('Paste your OpenRouter API key:');
-  if(!k)return;if(!k.trim().startsWith('sk-or-')){alert('Invalid — should start with sk-or-');return}
-  apiKey=k.trim();try{localStorage.setItem(KS,k.trim())}catch{}
-  showToast('API key updated');
-};
-document.getElementById('btn-notif').onclick=async()=>{await Notification.requestPermission();checkNotifPerm()};
-document.getElementById('btn-check-all').onclick=checkAll;
-document.getElementById('btn-show-add').onclick=()=>{document.getElementById('add-panel').style.display='block';document.getElementById('inp-name').focus()};
-document.getElementById('btn-cancel').onclick=()=>document.getElementById('add-panel').style.display='none';
-document.getElementById('btn-save').onclick=async function(){
-  const name=document.getElementById('inp-name').value.trim();
-  const url=document.getElementById('inp-url').value.trim();
-  const target=document.getElementById('inp-target').value.trim();
-  const notes=document.getElementById('inp-notes').value.trim();
-  const category=document.getElementById('inp-cat').value;
-  if(!name){alert('Please enter a product name.');return}
-  if(!url||!url.startsWith('http')){alert('Please enter a valid URL starting with http.');return}
-  const item={id:uid(),name,url,targetPrice:target?parseFloat(target):null,notes:notes||null,category:category||null,currentPrice:null,currency:'AUD',lastChecked:null,addedAt:Date.now()};
-  items.unshift(item);histories[item.id]=[];saveData();
+document.getElementById('search-inp').oninput = function(){ searchQ=this.value.toLowerCase().trim(); render(); };
+document.getElementById('btn-settings').onclick = openSettings;
+document.getElementById('btn-check-all').onclick = checkAll;
+document.getElementById('btn-show-add').onclick = ()=>{ document.getElementById('add-panel').style.display='block'; document.getElementById('inp-name').focus(); };
+document.getElementById('btn-cancel').onclick = ()=>document.getElementById('add-panel').style.display='none';
+document.getElementById('btn-notif').onclick = async()=>{ await Notification.requestPermission(); document.getElementById('notif-bar').style.display='none'; };
+
+document.getElementById('btn-save').onclick = async function() {
+  const name = document.getElementById('inp-name').value.trim();
+  const url = document.getElementById('inp-url').value.trim();
+  const target = document.getElementById('inp-target').value.trim();
+  const notes = document.getElementById('inp-notes').value.trim();
+  const category = document.getElementById('inp-cat').value;
+  if (!name) { showToast('Please enter a product name'); return; }
+  if (!url||!url.startsWith('http')) { showToast('Please enter a valid URL starting with http'); return; }
+  const item = { id:uid(), name, url, targetPrice:target?parseFloat(target):null, notes:notes||null, category:category||null, currentPrice:null, imageUrl:null, currency:'AUD', lastChecked:null, addedAt:Date.now() };
+  items.unshift(item); histories[item.id]=[];
+  scheduleSave();
   ['inp-name','inp-url','inp-target','inp-notes'].forEach(x=>document.getElementById(x).value='');
   document.getElementById('inp-cat').value='';
   document.getElementById('add-panel').style.display='none';
-  render();window.checkOne(item.id);
+  render(); window.checkOne(item.id);
 };
-const savedKey=localStorage.getItem(KS);
-if(savedKey&&savedKey.startsWith('sk-or-'))startApp(savedKey);
+
+// ── Init ──
+function checkNotifPerm() {
+  document.getElementById('notif-bar').style.display = typeof Notification!=='undefined'&&Notification.permission==='default'?'flex':'none';
+}
+
+async function init() {
+  // Load saved keys
+  try { orKey = localStorage.getItem(OR_LS)||''; } catch(e) {}
+  try { ghKey = localStorage.getItem(GH_LS)||''; } catch(e) {}
+  try { gistId = localStorage.getItem(GID_LS)||''; } catch(e) {}
+
+  // Load local data first (instant)
+  loadLocal(); render();
+
+  // Show banner if no keys configured
+  if (!orKey && !ghKey) {
+    document.getElementById('setup-banner').style.display='flex';
+  }
+
+  // Pull from Gist if available (may update local data)
+  if (ghKey) {
+    const loaded = await gistLoad();
+    if (loaded) render();
+    else if (items.length>0) gistSave(); // push local data up
+  } else {
+    setSyncStatus('off','local only');
+  }
+
+  checkNotifPerm();
+}
+
+init();
 </script>
 </body>
 </html>
