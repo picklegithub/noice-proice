@@ -811,44 +811,34 @@ async function callOR(item){
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
     body:JSON.stringify({
       model:'anthropic/claude-haiku-4-5',
-      plugins:[{id:'web',max_results:8}],
+      plugins:[{id:'web',max_results:5}],
       response_format:{type:'json_object'},
-      messages:[{role:'user',content:`You are an Australian retail price checker. Find the EXACT product and compare prices.
+      messages:[{role:'user',content:`You are an Australian retail price checker. Visit the EXACT URL provided and find the current price.
 
 Product: ${item.name}
-URL: ${item.url}${item.notes?'\nExact model number: '+item.notes:''}${item.targetPrice?'\nTarget price: AUD $'+item.targetPrice:''}
+URL: ${item.url}${item.notes?'\nExact model/variant: '+item.notes:''}
 
-CRITICAL RULES FOR EXACT MATCHING:
-- You MUST find the EXACT product — same model number, same size, same variant
-- If the model number is provided (e.g. WH1000XM5, EP30 Pro, 24oz), ONLY match that exact model/size
-- Do NOT substitute similar products (e.g. Presence Lite is NOT Presence Pro, 14oz is NOT 24oz)
-- If you cannot find the exact model, return price: null rather than a wrong variant
-- For competitors, ONLY include if they sell the EXACT same model/variant
-
-Search across Australian retailers (JB Hi-Fi, Kogan, Amazon AU, Harvey Norman, Bing Lee, Officeworks, etc).
+STRICT RULES:
+- Check ONLY the exact URL above — do not search other retailers
+- Find the price for EXACTLY this product — same model, same size, same variant
+- If the page shows a different variant or the product is not found, return price: null
+- Do NOT substitute similar products under any circumstances
 
 Return ONLY valid JSON:
 {
   "price": 299.99,
   "currency": "AUD",
   "store": "JB Hi-Fi",
-  "storeUrl": "https://www.jbhifi.com.au/...",
   "imageUrl": "https://...product.jpg",
   "allTimeLow": 249.00,
-  "verdict": "good time to buy",
-  "competitors": [
-    {"store": "Kogan", "price": 319.00, "url": "https://www.kogan.com/..."},
-    {"store": "Amazon AU", "price": 309.00, "url": "https://www.amazon.com.au/..."}
-  ]
+  "verdict": "good time to buy"
 }
 
-- price: current price at the original URL's retailer in AUD, or null if exact match not found
-- store: name of the retailer at the original URL
-- storeUrl: the exact product page URL where price was found (may differ from original URL if redirected)
-- imageUrl: direct URL to the main product image (jpg/png/webp only, must be a full https:// URL), or null
-- allTimeLow: lowest price found anywhere for this EXACT product, or null
-- verdict: "at historical low" | "great time to buy" | "good time to buy" | "wait for better price" | "no data"
-- competitors: up to 3 OTHER retailers selling the EXACT same product with price and URL`}]
+- price: current AUD price from this exact URL, or null
+- store: retailer name from the URL
+- imageUrl: main product image direct URL (https:// only), or null
+- allTimeLow: lowest price you can find for this exact product anywhere, or null
+- verdict: "at historical low" | "great time to buy" | "good time to buy" | "wait for better price" | "no data"`}]
     })
   });
   if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||'HTTP '+res.status);}
