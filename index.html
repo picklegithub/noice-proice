@@ -849,6 +849,7 @@ function importData(file){
 }
 
 // ── Item actions ──
+window.toggleExp=id=>{expanded.has(id)?expanded.delete(id):expanded.add(id);render();};
 function toggleGlobalAlerts(){
   const btn=document.getElementById('btn-toggle-emails');
   const anyOn=items.some(i=>i.emailAlert);
