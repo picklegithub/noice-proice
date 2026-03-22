@@ -407,6 +407,33 @@ let orKey='', currentUser=null;
 let activeFilter='all', searchQ='';
 let syncDebounce=null, pendingImageUrl=null;
 let findingRetailers=new Set();
+const fxCache={rates:{},fetchedAt:0};
+
+async function toAUD(amount, currency){
+  if(!currency||currency==='AUD') return {aud:amount, original:null};
+  const cur=currency.toUpperCase();
+  // Cache rates for 1 hour
+  if(!fxCache.rates[cur]||Date.now()-fxCache.fetchedAt>3600000){
+    try{
+      const res=await fetch(`https://api.frankfurter.app/latest?from=${cur}&to=AUD`);
+      const data=await res.json();
+      if(data.rates?.AUD){
+        fxCache.rates[cur]=data.rates.AUD;
+        fxCache.fetchedAt=Date.now();
+      }
+    }catch(e){ return {aud:amount, original:null}; }
+  }
+  const rate=fxCache.rates[cur];
+  if(!rate) return {aud:amount, original:null};
+  return {aud:parseFloat((amount*rate).toFixed(2)), original:{amount, currency:cur, rate}};
+}
+
+const CURRENCY_SYMBOLS={'GBP':'£','EUR':'€','USD':'$','JPY':'¥','CAD':'CA$','NZD':'NZ$','SGD':'S$'};
+function fmtOrig(original){
+  if(!original) return '';
+  const sym=CURRENCY_SYMBOLS[original.currency]||original.currency+' ';
+  return `${sym}${parseFloat(original.amount).toFixed(2)}`;
+}
 
 const DEFAULT_RETAILERS=[
   {name:'JB Hi-Fi',url:'jbhifi.com.au'},
@@ -611,7 +638,7 @@ function renderItem(item){
   const histRows=ph.slice(-6).reverse().map(p=>`<tr>
     <td>${new Date(p.checkedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short'})}</td>
     <td>${new Date(p.checkedAt).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}</td>
-    <td>${fmtA(p.price)}</td>
+    <td>${fmtA(p.price)}${p.originalPrice?` <span style="color:var(--text3);font-size:10px">${fmtOrig(p.originalPrice)}</span>`:''}</td>
     <td style="color:var(--text3)">${p.store?esc(p.store.slice(0,14)):''}</td>
   </tr>`).join('');
   const pClass=isC||isErr?'none':st;
@@ -655,6 +682,7 @@ function renderItem(item){
       </div>
       <div class="item-prices">
         <div class="price-now ${pClass}">${isC?'…':fmtA(item.currentPrice)}</div>
+        ${!isC&&item.originalPrice?`<div style="font-size:11px;color:var(--text3)">${fmtOrig(item.originalPrice)}</div>`:''}
         <div class="price-tgt">target ${fmtA(item.targetPrice)}</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
           <span class="badge ${isC?'checking':isErr?'error':st}">${badgeLbl(st,item.id)}</span>
@@ -834,10 +862,11 @@ Return ONLY valid JSON:
   "verdict": "good time to buy"
 }
 
-- price: current AUD price from this exact URL, or null
+- price: current price from this exact URL as shown on the page (use the actual number, do not convert)
+- currency: the actual currency shown on the page (AUD, GBP, EUR, USD etc)
 - store: retailer name from the URL
 - imageUrl: main product image direct URL (https:// only), or null
-- allTimeLow: lowest price you can find for this exact product anywhere, or null
+- allTimeLow: lowest price you can find for this exact product anywhere in any currency (convert to same currency as price), or null
 - verdict: "at historical low" | "great time to buy" | "good time to buy" | "wait for better price" | "no data"`}]
     })
   });
@@ -899,10 +928,19 @@ window.checkOne=async function(id){
     const prev=item.currentPrice;
     const res=await callOR(item);
     if(res.price!=null){
-      item.currentPrice=parseFloat(res.price);item.currency='AUD';
+      const currency=(res.currency||'AUD').toUpperCase();
+      const converted=await toAUD(parseFloat(res.price), currency);
+      item.currentPrice=converted.aud;
+      item.currency='AUD';
+      item.originalPrice=converted.original; // stores {amount, currency, rate} or null
       item.store=res.store||null;
       if(!histories[id])histories[id]=[];
-      histories[id].push({price:item.currentPrice,checkedAt:Date.now(),store:res.store||null});
+      histories[id].push({
+        price:converted.aud,
+        originalPrice:converted.original,
+        checkedAt:Date.now(),
+        store:res.store||null
+      });
       if(histories[id].length>30)histories[id]=histories[id].slice(-30);
     }
     if(res.imageUrl&&res.imageUrl.startsWith('https://'))item.imageUrl=res.imageUrl;
