@@ -598,16 +598,17 @@ function renderItem(item){
   const atlBadge=item.allTimeLow?`<span style="font-size:10px;padding:2px 7px;border-radius:99px;background:#E6F1FB;color:#0C447C;font-weight:600;white-space:nowrap">↓ low ${fmtP(item.allTimeLow)}</span>`:'';
 
   let imgHtml;
-  if(item.imageUrl){
-    imgHtml=`<img class="prod" src="${esc(item.imageUrl)}" alt="" onerror="this.parentNode.innerHTML='<span class=ph>🛍️</span>'" loading="lazy"/>`;
+  if(item.imageUrl&&item.imageUrl.startsWith('https://')){
+    // Use image directly — if it fails fall back to favicon
+    imgHtml=`<img class="prod" src="${esc(item.imageUrl)}" alt="" onerror="this.src='${fav(item.url)}';this.className='fav'" loading="lazy"/>`;
   } else {
     const f=fav(item.url);
     imgHtml=f?`<img class="fav" src="${f}" alt="" onerror="this.parentNode.innerHTML='<span class=ph>🛍️</span>'" loading="lazy"/>`:'<span class="ph">🛍️</span>';
   }
 
   const competitorRows=competitors.map(c=>`
-    <div class="ps-row">
-      <span class="ps-l">${esc(c.store)}</span>
+    <div class="ps-row" style="cursor:${c.url?'pointer':'default'}" onclick="${c.url?`window.open('${esc(c.url)}','_blank')`:''}">
+      <span class="ps-l">${esc(c.store)}${c.url?' ↗':''}</span>
       <span class="ps-v ${c.price!=null&&item.currentPrice!=null&&c.price<item.currentPrice?'g':''}">${fmtA(c.price)}</span>
     </div>`).join('');
 
@@ -618,7 +619,7 @@ function renderItem(item){
         <div class="item-img">${imgHtml}</div>
         <div class="item-info">
           <div class="item-name">${esc(item.name)}${item.category?` <span style="font-size:10px;color:var(--text3);font-weight:400">${esc(item.category)}</span>`:''}</div>
-          <div class="item-meta">${esc(domain(item.url))}${item.notes?' · '+esc(item.notes):''}</div>
+          <div class="item-meta">${esc(domain(item.url))}${item.store?' · '+esc(item.store):''}${item.notes?' · '+esc(item.notes):''}</div>
           <div class="item-stxt ${sCls}">${sTxt}</div>
         </div>
       </div>
@@ -699,38 +700,42 @@ async function callOR(item){
       model:'anthropic/claude-haiku-4-5',
       plugins:[{id:'web',max_results:8}],
       response_format:{type:'json_object'},
-      messages:[{role:'user',content:`You are an Australian retail price checker. Search for the current price of this product and compare prices across Australian retailers.
+      messages:[{role:'user',content:`You are an Australian retail price checker. Find the EXACT product and compare prices.
 
 Product: ${item.name}
-URL: ${item.url}${item.notes?'\nModel: '+item.notes:''}${item.targetPrice?'\nTarget price: AUD $'+item.targetPrice:''}
+URL: ${item.url}${item.notes?'\nExact model number: '+item.notes:''}${item.targetPrice?'\nTarget price: AUD $'+item.targetPrice:''}
 
-Search for this product across multiple Australian retailers (JB Hi-Fi, Kogan, Amazon AU, Harvey Norman, Bing Lee, Officeworks, etc).
+CRITICAL RULES FOR EXACT MATCHING:
+- You MUST find the EXACT product — same model number, same size, same variant
+- If the model number is provided (e.g. WH1000XM5, EP30 Pro, 24oz), ONLY match that exact model/size
+- Do NOT substitute similar products (e.g. Presence Lite is NOT Presence Pro, 14oz is NOT 24oz)
+- If you cannot find the exact model, return price: null rather than a wrong variant
+- For competitors, ONLY include if they sell the EXACT same model/variant
+
+Search across Australian retailers (JB Hi-Fi, Kogan, Amazon AU, Harvey Norman, Bing Lee, Officeworks, etc).
 
 Return ONLY valid JSON:
 {
   "price": 299.99,
   "currency": "AUD",
   "store": "JB Hi-Fi",
+  "storeUrl": "https://www.jbhifi.com.au/...",
   "imageUrl": "https://...product.jpg",
   "allTimeLow": 249.00,
   "verdict": "good time to buy",
   "competitors": [
-    {"store": "Kogan", "price": 319.00},
-    {"store": "Amazon AU", "price": 309.00}
+    {"store": "Kogan", "price": 319.00, "url": "https://www.kogan.com/..."},
+    {"store": "Amazon AU", "price": 309.00, "url": "https://www.amazon.com.au/..."}
   ]
 }
 
-Rules:
-- price: current price at the URL's retailer in AUD, or null
-- imageUrl: direct product image URL or null
-- allTimeLow: lowest price you can find anywhere online for this product, or null
-- verdict: one of exactly these strings based on price vs history and target:
-  "at historical low" (price is at or near the lowest ever seen)
-  "great time to buy" (price is below target or very good deal)
-  "good time to buy" (price is at or near target)
-  "wait for better price" (price is above target and not a great deal)
-  "no data" (cannot determine)
-- competitors: up to 3 OTHER retailers with their current prices, empty array if none found`}]
+- price: current price at the original URL's retailer in AUD, or null if exact match not found
+- store: name of the retailer at the original URL
+- storeUrl: the exact product page URL where price was found (may differ from original URL if redirected)
+- imageUrl: direct URL to the main product image (jpg/png/webp only, must be a full https:// URL), or null
+- allTimeLow: lowest price found anywhere for this EXACT product, or null
+- verdict: "at historical low" | "great time to buy" | "good time to buy" | "wait for better price" | "no data"
+- competitors: up to 3 OTHER retailers selling the EXACT same product with price and URL`}]
     })
   });
   if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||'HTTP '+res.status);}
@@ -778,11 +783,12 @@ window.checkOne=async function(id){
     const res=await callOR(item);
     if(res.price!=null){
       item.currentPrice=parseFloat(res.price);item.currency='AUD';
+      item.store=res.store||null;
       if(!histories[id])histories[id]=[];
       histories[id].push({price:item.currentPrice,checkedAt:Date.now(),store:res.store||null});
       if(histories[id].length>30)histories[id]=histories[id].slice(-30);
     }
-    if(res.imageUrl&&!item.imageUrl)item.imageUrl=res.imageUrl;
+    if(res.imageUrl&&res.imageUrl.startsWith('https://'))item.imageUrl=res.imageUrl;
     if(res.allTimeLow) item.allTimeLow=parseFloat(res.allTimeLow);
     if(res.verdict) item.verdict=res.verdict;
     if(res.competitors&&res.competitors.length) item.competitors=res.competitors;
