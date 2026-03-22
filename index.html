@@ -385,7 +385,10 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
       <input class="search-input" id="search-inp" placeholder="Search..."/>
     </div>
 
-    <div class="sec-lbl" id="count-lbl">Watchlist</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="sec-lbl" id="count-lbl" style="margin-bottom:0">Watchlist</div>
+      <button class="btn sm" id="btn-expand-all">Expand all</button>
+    </div>
     <div id="items-grid" class="items-grid"></div>
   </div>
 </div>
@@ -455,7 +458,7 @@ const esc   = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 const fmtP  = p  => p==null?'–':'$'+parseFloat(p).toFixed(2);
 const fmtA  = p  => p==null?'–':'AUD '+fmtP(p);
 const domain= url=> { try{return new URL(url).hostname.replace('www.','')}catch{return url}};
-const fav   = url=> { try{return`https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`}catch{return''}};
+const fav   = url=> { try{const h=new URL(url).hostname;return`https://icons.duckduckgo.com/ip3/${h}.ico`}catch{return''}};
 
 function relTime(ts){
   if(!ts) return 'never';
@@ -654,14 +657,8 @@ function renderItem(item){
   // All-time low badge
   const atlBadge=item.allTimeLow?`<span style="font-size:10px;padding:2px 7px;border-radius:99px;background:#E6F1FB;color:#0C447C;font-weight:600;white-space:nowrap">↓ low ${fmtP(item.allTimeLow)}</span>`:'';
 
-  let imgHtml;
-  if(item.imageUrl&&item.imageUrl.startsWith('https://')){
-    // Use image directly — if it fails fall back to favicon
-    imgHtml=`<img class="prod" src="${esc(item.imageUrl)}" alt="" onerror="this.src='${fav(item.url)}';this.className='fav'" loading="lazy"/>`;
-  } else {
-    const f=fav(item.url);
-    imgHtml=f?`<img class="fav" src="${f}" alt="" onerror="this.parentNode.innerHTML='<span class=ph>🛍️</span>'" loading="lazy"/>`:'<span class="ph">🛍️</span>';
-  }
+  const f=fav(item.url);
+  const imgHtml=f?`<img class="fav" src="${f}" alt="" onerror="this.parentNode.innerHTML='<span class=ph>🛍️</span>'" loading="lazy"/>`:'<span class="ph">🛍️</span>';
 
   const competitorRows=competitors.map(c=>`
     <div class="ps-row" style="cursor:${c.url?'pointer':'default'}" onclick="${c.url?`window.open('${esc(c.url)}','_blank')`:''}">
@@ -716,6 +713,7 @@ function renderItem(item){
       <div class="det-actions">
         <button class="btn sm" onclick="event.stopPropagation();checkOne('${item.id}')">↻ Refresh</button>
         <button class="btn sm" onclick="event.stopPropagation();editTarget('${item.id}')">Edit target</button>
+        <button class="btn sm" onclick="event.stopPropagation();editUrl('${item.id}')">Edit URL</button>
         <button class="btn sm" onclick="event.stopPropagation();window.open('${esc(item.url)}','_blank')">Open page ↗</button>
         <button class="btn sm" onclick="event.stopPropagation();findRetailersForItem('${item.id}')" style="${findingRetailers.has(item.id)?'opacity:.5':''}" ${findingRetailers.has(item.id)?'disabled':''}>
           ${findingRetailers.has(item.id)?'Searching...':'🔍 Find AU retailers'}
@@ -1035,6 +1033,16 @@ window.editTarget=id=>{
   if(v===null)return;const p=parseFloat(v);
   if(!isNaN(p)&&p>0){item.targetPrice=p;scheduleSave();render();}
 };
+window.editUrl=id=>{
+  const item=items.find(i=>i.id===id);if(!item)return;
+  const v=prompt(`New URL for:\n"${item.name}"\n\nCurrent: ${item.url}`);
+  if(!v||!v.trim().startsWith('http')){if(v!==null)showToast('Invalid URL — must start with http');return;}
+  item.url=v.trim();
+  // Reset price data since URL changed
+  item.currentPrice=null;item.store=null;item.verdict=null;item.allTimeLow=null;item.competitors=null;item.retailerLinks=null;item.originalPrice=null;
+  scheduleSave();render();
+  showToast('URL updated — hit Refresh to check new price');
+};
 window.removeItem=id=>{
   const item=items.find(i=>i.id===id);
   if(!item||!confirm(`Remove "${item.name}"?`))return;
@@ -1187,7 +1195,13 @@ document.querySelectorAll('.fb').forEach(b=>b.onclick=function(){
   document.querySelectorAll('.fb').forEach(x=>x.classList.remove('active'));
   this.classList.add('active');activeFilter=this.dataset.f;render();
 });
-document.getElementById('search-inp').oninput=function(){searchQ=this.value.toLowerCase().trim();render();};
+document.getElementById('search-inp').oninput=function(){searchQ=this.value.toLowerCase().trim();render()};
+document.getElementById('btn-expand-all').onclick=function(){
+  const allExpanded=filtered().every(i=>expanded.has(i.id));
+  filtered().forEach(i=>allExpanded?expanded.delete(i.id):expanded.add(i.id));
+  this.textContent=allExpanded?'Expand all':'Collapse all';
+  render();
+};
 
 function checkNotifPerm(){
   document.getElementById('notif-bar').style.display=typeof Notification!=='undefined'&&Notification.permission==='default'?'flex':'none';
