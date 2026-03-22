@@ -251,6 +251,18 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
       <button class="btn sm pri" id="btn-save-orkey" style="margin-top:10px">Save API key</button>
     </div>
     <div class="msec">
+      <div class="msec-title">Email alerts</div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:8px">
+        Get an email when a tracked item drops to your target price. Uses your account email automatically.<br><br>
+        Requires the auto-check Edge Function to be set up — see the setup guide below.
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span style="font-size:13px">Daily auto-check + email alerts</span>
+        <button class="btn sm" id="btn-toggle-emails" onclick="toggleGlobalAlerts()">Enable</button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">Toggle alerts per item by clicking 🔕 on each item in your watchlist.</div>
+    </div>
+    <div class="msec">
       <div class="msec-title">Backup</div>
       <div style="display:flex;gap:8px">
         <button class="btn sm" id="modal-export">↓ Export JSON</button>
@@ -554,6 +566,15 @@ function sparkSVG(id,W,H){
 }
 
 // ── Render item ──
+function verdictStyle(v){
+  if(!v||v==='no data') return '';
+  if(v==='at historical low') return 'background:#E6F1FB;color:#0C447C';
+  if(v==='great time to buy') return 'background:var(--green-bg);color:var(--green)';
+  if(v==='good time to buy') return 'background:var(--green-bg);color:var(--green)';
+  if(v==='wait for better price') return 'background:var(--amber-bg);color:var(--amber)';
+  return '';
+}
+
 function renderItem(item){
   const st=status(item),isC=checking.has(item.id),isExp=expanded.has(item.id),isErr=cstatus[item.id]==='error';
   const ph=(histories[item.id]||[]).filter(p=>p.price!=null);
@@ -570,6 +591,12 @@ function renderItem(item){
   const lo=phPrices.length?Math.min(...phPrices):null;
   const hi=phPrices.length?Math.max(...phPrices):null;
   const diff=item.currentPrice!=null&&item.targetPrice?item.currentPrice-item.targetPrice:null;
+  const vStyle=verdictStyle(item.verdict);
+  const competitors=item.competitors||[];
+
+  // All-time low badge
+  const atlBadge=item.allTimeLow?`<span style="font-size:10px;padding:2px 7px;border-radius:99px;background:#E6F1FB;color:#0C447C;font-weight:600;white-space:nowrap">↓ low ${fmtP(item.allTimeLow)}</span>`:'';
+
   let imgHtml;
   if(item.imageUrl){
     imgHtml=`<img class="prod" src="${esc(item.imageUrl)}" alt="" onerror="this.parentNode.innerHTML='<span class=ph>🛍️</span>'" loading="lazy"/>`;
@@ -577,6 +604,13 @@ function renderItem(item){
     const f=fav(item.url);
     imgHtml=f?`<img class="fav" src="${f}" alt="" onerror="this.parentNode.innerHTML='<span class=ph>🛍️</span>'" loading="lazy"/>`:'<span class="ph">🛍️</span>';
   }
+
+  const competitorRows=competitors.map(c=>`
+    <div class="ps-row">
+      <span class="ps-l">${esc(c.store)}</span>
+      <span class="ps-v ${c.price!=null&&item.currentPrice!=null&&c.price<item.currentPrice?'g':''}">${fmtA(c.price)}</span>
+    </div>`).join('');
+
   return`<div class="item-card" data-id="${item.id}">
     <div class="item-row" onclick="toggleExp('${item.id}')">
       <div class="accent ${isC?'checking':isErr?'error':st}"></div>
@@ -591,7 +625,11 @@ function renderItem(item){
       <div class="item-prices">
         <div class="price-now ${pClass}">${isC?'…':fmtA(item.currentPrice)}</div>
         <div class="price-tgt">target ${fmtA(item.targetPrice)}</div>
-        <span class="badge ${isC?'checking':isErr?'error':st}">${badgeLbl(st,item.id)}</span>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+          <span class="badge ${isC?'checking':isErr?'error':st}">${badgeLbl(st,item.id)}</span>
+          ${!isC&&item.verdict&&item.verdict!=='no data'?`<span class="badge" style="${vStyle}">${item.verdict}</span>`:''}
+        </div>
+        ${!isC&&atlBadge?`<div style="margin-top:2px">${atlBadge}</div>`:''}
       </div>
     </div>
     <div class="item-detail ${isExp?'open':''}">
@@ -603,11 +641,13 @@ function renderItem(item){
         <div>
           <div class="dlbl">Trend</div>
           <div class="sparkwrap">${sparkSVG(item.id,200,60)}</div>
+          ${competitors.length?`<div class="dlbl" style="margin-top:12px">Compare prices</div>${competitorRows}`:''}
         </div>
         <div>
           <div class="dlbl">Summary</div>
           <div class="ps-row"><span class="ps-l">Current</span><span class="ps-v">${fmtA(item.currentPrice)}</span></div>
           <div class="ps-row"><span class="ps-l">Target</span><span class="ps-v">${fmtA(item.targetPrice)}</span></div>
+          <div class="ps-row"><span class="ps-l">All-time low</span><span class="ps-v g">${fmtA(item.allTimeLow||null)}</span></div>
           <div class="ps-row"><span class="ps-l">Lowest seen</span><span class="ps-v g">${fmtA(lo)}</span></div>
           <div class="ps-row"><span class="ps-l">Highest seen</span><span class="ps-v r">${fmtA(hi)}</span></div>
           ${diff!=null?`<div class="ps-row"><span class="ps-l">${diff<=0?'Saving':'To save'}</span><span class="ps-v ${diff<=0?'g':'r'}">${diff<=0?fmtP(Math.abs(diff))+' saved':fmtP(diff)+' to go'}</span></div>`:''}
@@ -618,6 +658,7 @@ function renderItem(item){
         <button class="btn sm" onclick="event.stopPropagation();checkOne('${item.id}')">↻ Refresh</button>
         <button class="btn sm" onclick="event.stopPropagation();editTarget('${item.id}')">Edit target</button>
         <button class="btn sm" onclick="event.stopPropagation();window.open('${esc(item.url)}','_blank')">Open page ↗</button>
+        <button class="btn sm" onclick="event.stopPropagation();toggleAlert('${item.id}')" style="${item.emailAlert?'color:var(--green)':''}">${item.emailAlert?'🔔 Alerts on':'🔕 Alerts off'}</button>
         <button class="btn sm" style="margin-left:auto;color:var(--text3)" onclick="event.stopPropagation();removeItem('${item.id}')">Remove</button>
       </div>
     </div>
@@ -656,19 +697,40 @@ async function callOR(item){
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
     body:JSON.stringify({
       model:'anthropic/claude-haiku-4-5',
-      plugins:[{id:'web',max_results:5}],
+      plugins:[{id:'web',max_results:8}],
       response_format:{type:'json_object'},
-      messages:[{role:'user',content:`You are an Australian retail price checker. Find the current retail price and product image for this item.
+      messages:[{role:'user',content:`You are an Australian retail price checker. Search for the current price of this product and compare prices across Australian retailers.
 
 Product: ${item.name}
-URL: ${item.url}${item.notes?'\nModel: '+item.notes:''}
+URL: ${item.url}${item.notes?'\nModel: '+item.notes:''}${item.targetPrice?'\nTarget price: AUD $'+item.targetPrice:''}
+
+Search for this product across multiple Australian retailers (JB Hi-Fi, Kogan, Amazon AU, Harvey Norman, Bing Lee, Officeworks, etc).
 
 Return ONLY valid JSON:
-{"price":299.99,"currency":"AUD","store":"JB Hi-Fi","imageUrl":"https://...product.jpg"}
+{
+  "price": 299.99,
+  "currency": "AUD",
+  "store": "JB Hi-Fi",
+  "imageUrl": "https://...product.jpg",
+  "allTimeLow": 249.00,
+  "verdict": "good time to buy",
+  "competitors": [
+    {"store": "Kogan", "price": 319.00},
+    {"store": "Amazon AU", "price": 309.00}
+  ]
+}
 
-- price: number in AUD or null
+Rules:
+- price: current price at the URL's retailer in AUD, or null
 - imageUrl: direct product image URL or null
-- store: retailer name`}]
+- allTimeLow: lowest price you can find anywhere online for this product, or null
+- verdict: one of exactly these strings based on price vs history and target:
+  "at historical low" (price is at or near the lowest ever seen)
+  "great time to buy" (price is below target or very good deal)
+  "good time to buy" (price is at or near target)
+  "wait for better price" (price is above target and not a great deal)
+  "no data" (cannot determine)
+- competitors: up to 3 OTHER retailers with their current prices, empty array if none found`}]
     })
   });
   if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||'HTTP '+res.status);}
@@ -721,6 +783,9 @@ window.checkOne=async function(id){
       if(histories[id].length>30)histories[id]=histories[id].slice(-30);
     }
     if(res.imageUrl&&!item.imageUrl)item.imageUrl=res.imageUrl;
+    if(res.allTimeLow) item.allTimeLow=parseFloat(res.allTimeLow);
+    if(res.verdict) item.verdict=res.verdict;
+    if(res.competitors&&res.competitors.length) item.competitors=res.competitors;
     item.lastChecked=Date.now();
     cstatus[id]=res.price!=null?'ok':'error';
     if(res.price!=null&&item.targetPrice&&item.currentPrice<=item.targetPrice&&(prev==null||prev>item.targetPrice))fireNotif(item);
@@ -784,7 +849,22 @@ function importData(file){
 }
 
 // ── Item actions ──
-window.toggleExp=id=>{expanded.has(id)?expanded.delete(id):expanded.add(id);render();};
+function toggleGlobalAlerts(){
+  const btn=document.getElementById('btn-toggle-emails');
+  const anyOn=items.some(i=>i.emailAlert);
+  items.forEach(i=>i.emailAlert=!anyOn);
+  btn.textContent=anyOn?'Enable':'Disable';
+  btn.style.color=anyOn?'':'var(--green)';
+  scheduleSave();render();
+  showToast(anyOn?'Email alerts disabled for all items':'Email alerts enabled for all items');
+}
+window.toggleGlobalAlerts=toggleGlobalAlerts;
+window.toggleAlert=id=>{
+  const item=items.find(i=>i.id===id);if(!item)return;
+  item.emailAlert=!item.emailAlert;
+  scheduleSave();render();
+  showToast(item.emailAlert?`Email alerts on for ${item.name.slice(0,25)}`:`Email alerts off for ${item.name.slice(0,25)}`);
+};
 window.editTarget=id=>{
   const item=items.find(i=>i.id===id);if(!item)return;
   const v=prompt(`New target price for:\n"${item.name}"\n\nCurrent: ${fmtA(item.targetPrice)}`);
