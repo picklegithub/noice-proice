@@ -782,8 +782,7 @@ function importData(file) {
   reader.readAsText(file);
 }
 
-document.getElementById('btn-export').onclick = exportData;
-document.getElementById('btn-import').onclick = () => document.getElementById('import-file').click();
+
 document.getElementById('modal-export').onclick = exportData;
 document.getElementById('modal-import').onclick = () => document.getElementById('import-file').click();
 document.getElementById('import-file').onchange = e => { if(e.target.files[0]) { importData(e.target.files[0]); e.target.value=''; } };
