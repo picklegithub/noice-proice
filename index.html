@@ -942,8 +942,10 @@ window.checkOne=async function(id){
       if(histories[id].length>30)histories[id]=histories[id].slice(-30);
     }
     if(res.imageUrl&&res.imageUrl.startsWith('https://'))item.imageUrl=res.imageUrl;
-    if(res.allTimeLow) item.allTimeLow=parseFloat(res.allTimeLow);
-    if(res.verdict) item.verdict=res.verdict;
+    if(res.price!=null){
+      if(res.allTimeLow&&parseFloat(res.allTimeLow)<item.currentPrice) item.allTimeLow=parseFloat(res.allTimeLow);
+      if(res.verdict) item.verdict=res.verdict;
+    }
     if(res.competitors&&res.competitors.length) item.competitors=res.competitors;
     // Auto-add retailer from item URL if not already in list
     autoAddRetailer(item.url);
