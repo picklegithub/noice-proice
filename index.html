@@ -776,7 +776,7 @@ async function findRetailersForItem(id){
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
       body:JSON.stringify({
         model:'anthropic/claude-haiku-4-5',
-        plugins:[{id:'web',max_results:8}],
+        plugins:[{id:'web',max_results:3}],
         response_format:{type:'json_object'},
         messages:[{role:'user',content:`Find Australian retailers selling this EXACT product.
 
@@ -837,7 +837,7 @@ async function callOR(item){
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
     body:JSON.stringify({
       model:'anthropic/claude-haiku-4-5',
-      plugins:[{id:'web',max_results:5}],
+      plugins:[{id:'web',max_results:2}],
       response_format:{type:'json_object'},
       messages:[{role:'user',content:`You are an Australian retail price checker. Visit the EXACT URL provided and find the current price.
 
@@ -895,7 +895,7 @@ async function lookupProduct(url){
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
     body:JSON.stringify({
       model:'anthropic/claude-haiku-4-5',
-      plugins:[{id:'web',max_results:3}],
+      plugins:[{id:'web',max_results:1}],
       response_format:{type:'json_object'},
       messages:[{role:'user',content:`Look up this product page and extract the details.
 
