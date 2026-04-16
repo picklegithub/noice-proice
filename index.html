@@ -276,7 +276,7 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
       <input class="m-input" id="set-or-key" type="password" placeholder="sk-or-v1-..."/>
       <div style="display:flex;gap:8px;align-items:center">
         <span class="status-pill missing" id="or-pill">Not set</span>
-        <span style="font-size:11px;color:var(--text3)">~$0.001 per price check</span>
+        <span style="font-size:11px;color:var(--text3)">~$0.0004 per price check (Gemini 2.5 Flash)</span>
       </div>
       <button class="btn sm pri" id="btn-save-orkey" style="margin-top:10px">Save API key</button>
     </div>
@@ -895,8 +895,7 @@ async function findRetailersForItem(id){
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
       body:JSON.stringify({
-        model:'anthropic/claude-haiku-4-5',
-        plugins:[{id:'web',max_results:3}],
+        model:'google/gemini-2.5-flash-preview:online',
         response_format:{type:'json_object'},
         messages:[{role:'user',content:`Find Australian retailers selling this EXACT product.
 
@@ -956,8 +955,7 @@ async function callOR(item){
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
     body:JSON.stringify({
-      model:'anthropic/claude-haiku-4-5',
-      plugins:[{id:'web',max_results:2}],
+      model:'google/gemini-2.5-flash-preview:online',
       response_format:{type:'json_object'},
       messages:[{role:'user',content:`You are an Australian retail price checker. Visit the EXACT URL provided and find the current price.
 
@@ -1014,8 +1012,7 @@ async function lookupProduct(url){
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
     body:JSON.stringify({
-      model:'anthropic/claude-haiku-4-5',
-      plugins:[{id:'web',max_results:1}],
+      model:'google/gemini-2.5-flash-preview:online',
       response_format:{type:'json_object'},
       messages:[{role:'user',content:`Look up this product page and extract the details.
 
