@@ -1010,7 +1010,7 @@ async function findRetailersForItem(id){
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
       body:JSON.stringify({
-        model:'google/gemini-2.5-flash-preview:online',
+        model:'google/gemini-2.5-flash:online',
         response_format:{type:'json_object'},
         messages:[{role:'user',content:`Find Australian retailers selling this EXACT product.
 
@@ -1070,7 +1070,7 @@ async function callOR(item){
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
     body:JSON.stringify({
-      model:'google/gemini-2.5-flash-preview:online',
+      model:'google/gemini-2.5-flash:online',
       response_format:{type:'json_object'},
       messages:[{role:'user',content:`You are an Australian retail price checker. Visit the EXACT URL provided and find the current price.
 
@@ -1127,7 +1127,7 @@ async function lookupProduct(url){
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
     body:JSON.stringify({
-      model:'google/gemini-2.5-flash-preview:online',
+      model:'google/gemini-2.5-flash:online',
       response_format:{type:'json_object'},
       messages:[{role:'user',content:`Look up this product page and extract the details.
 
