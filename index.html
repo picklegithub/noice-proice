@@ -220,6 +220,14 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .src-badge.ai{background:var(--surface2);color:var(--text3)}
 
 abbr{text-decoration:underline dotted;text-underline-offset:2px;cursor:help}
+/* history management */
+.hist-manage-mode .hist-cb-col{display:table-cell!important}
+.hist-cb-col{display:none;width:20px;padding-right:4px!important}
+.hist-cb{width:14px;height:14px;cursor:pointer;accent-color:var(--accent)}
+.hist-table tr.hist-selected td{background:rgba(129,140,248,0.06)}
+.hist-table tr.hist-bad td{background:rgba(248,113,113,0.06)}
+.hist-manage-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.hist-count{font-size:11px;color:var(--text3)}
 </style>
 </head>
 <body>
@@ -495,6 +503,8 @@ let syncDebounce=null, pendingImageUrl=null;
 let findingRetailers=new Set();
 let bulkMode=false, selectedItems=new Set();
 let sortMode='recent', tileFilter='all';
+const histManage=new Set();
+const histSel={};
 let pricesApiKey='';
 const fxCache={rates:{},fetchedAt:0};
 
@@ -762,12 +772,20 @@ function renderItem(item, isBestDeal){
   const st=status(item),isC=checking.has(item.id),isExp=expanded.has(item.id),isErr=cstatus[item.id]==='error';
   const isSel=selectedItems.has(item.id);
   const ph=(histories[item.id]||[]).filter(p=>p.price!=null);
-  const histRows=ph.slice(-8).reverse().map(p=>`<tr>
-    <td>${new Date(p.checkedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short'})}</td>
-    <td>${new Date(p.checkedAt).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}</td>
-    <td>${fmtA(p.price)}${p.originalPrice?` <span style="color:var(--text3);font-size:10px">${fmtOrig(p.originalPrice)}</span>`:''}</td>
-    <td style="color:var(--text3)">${p.store?esc(p.store.slice(0,14)):''}</td>
-  </tr>`).join('');
+  const inManage=histManage.has(item.id);
+  if(!histSel[item.id]) histSel[item.id]=new Set();
+  const selSet=histSel[item.id];
+  const histRows=ph.slice().reverse().map((p,i)=>{
+    const isSel=selSet.has(p.checkedAt);
+    const isLatest=i===0;
+    return`<tr class="${isSel?'hist-selected':''}${isLatest?' hist-latest':''}">
+      <td class="hist-cb-col"><input type="checkbox" class="hist-cb" ${isSel?'checked':''} onchange="toggleHistEntry('${item.id}',${p.checkedAt},this.checked)" onclick="event.stopPropagation()"/></td>
+      <td>${new Date(p.checkedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short'})}</td>
+      <td>${new Date(p.checkedAt).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td>${fmtA(p.price)}${p.originalPrice?` <span style="color:var(--text3);font-size:10px">${fmtOrig(p.originalPrice)}</span>`:''}</td>
+      <td style="color:var(--text3)">${p.store?esc(p.store.slice(0,14)):''}</td>
+    </tr>`;
+  }).join('');
   const pClass=isC||isErr?'none':st;
   const lastSrc=(histories[item.id]||[]).slice(-1)[0]?.source;
   const srcTag=!isC&&!isErr&&lastSrc?`<span class="src-badge ${lastSrc==='pricesapi'?'prices-api':'ai'}">${lastSrc==='pricesapi'?'live data':'AI'}</span>`:'';
@@ -828,8 +846,25 @@ function renderItem(item, isBestDeal){
     <div class="item-detail ${isExp&&!bulkMode?'open':''}">
       <div class="detail-grid">
         <div>
-          <div class="dlbl">Price history (last ${Math.min(ph.length,8)})</div>
-          ${ph.length?`<table class="hist-table"><thead><tr><th>Date</th><th>Time</th><th>Price</th><th>Store</th></tr></thead><tbody>${histRows}</tbody></table>`:'<p style="font-size:11px;color:var(--text3)">No history yet — hit Refresh</p>'}
+          <div class="dlbl">Price history (${ph.length} checks)</div>
+          ${ph.length?`
+            <div class="hist-manage-bar">
+              ${inManage?`
+                <span class="hist-count">${selSet.size} selected</span>
+                <button class="btn sm" style="font-size:11px;padding:4px 10px;color:var(--red)" onclick="event.stopPropagation();deleteHistEntries('${item.id}')" ${selSet.size===0?'disabled':''}>✕ Delete selected</button>
+                <button class="btn sm" style="font-size:11px;padding:4px 10px" onclick="event.stopPropagation();selectAllHist('${item.id}',true)">Select all</button>
+                <button class="btn sm" style="font-size:11px;padding:4px 10px" onclick="event.stopPropagation();toggleHistManage('${item.id}')">Done</button>
+              `:`
+                <button class="btn sm" style="font-size:11px;padding:4px 10px" onclick="event.stopPropagation();toggleHistManage('${item.id}')">🗑 Manage history</button>
+              `}
+            </div>
+            <div style="max-height:${inManage?'260px':'180px'};overflow-y:auto">
+              <table class="hist-table${inManage?' hist-manage-mode':''}">
+                <thead><tr><th class="hist-cb-col"></th><th>Date</th><th>Time</th><th>Price</th><th>Store</th></tr></thead>
+                <tbody>${histRows}</tbody>
+              </table>
+            </div>
+          `:'<p style="font-size:11px;color:var(--text3)">No history yet — hit Refresh</p>'}
         </div>
         <div>
           <div class="dlbl">Trend (${ph.length} checks)</div>
@@ -851,6 +886,7 @@ function renderItem(item, isBestDeal){
       </div>
       <div class="det-actions">
         <button class="btn sm" onclick="event.stopPropagation();checkOne('${item.id}')">↻ Refresh</button>
+        ${item.pricesApiId?`<button class="btn sm" style="color:var(--amber)" onclick="event.stopPropagation();wrongProduct('${item.id}')">⚠ Wrong product?</button>`:''}
         <button class="btn sm" onclick="event.stopPropagation();editTarget('${item.id}')">Edit target</button>
         <button class="btn sm" onclick="event.stopPropagation();editUrl('${item.id}')">Edit URL</button>
         <button class="btn sm" onclick="event.stopPropagation();window.open('${esc(item.url)}','_blank')">Open page ↗</button>
@@ -957,7 +993,7 @@ function updateDash(bestDealId){
 async function searchPricesAPI(name){
   if(!pricesApiKey) return null;
   try{
-    const res=await fetch(`https://api.pricesapi.io/api/v1/products/search?q=${encodeURIComponent(name)}&limit=5`,{
+    const res=await fetch(`https://api.pricesapi.io/api/v1/products/search?q=${encodeURIComponent(name)}&limit=3`,{
       headers:{'x-api-key':pricesApiKey}
     });
     if(!res.ok) return null;
@@ -1074,13 +1110,15 @@ async function callOR(item){
       response_format:{type:'json_object'},
       messages:[{role:'user',content:`You are an Australian retail price checker. Visit the EXACT URL provided and find the current price.
 
-Product: ${item.name}
-URL: ${item.url}${item.notes?'\nExact model/variant: '+item.notes:''}
+Product: ${item.name}${item.notes?`
+Exact model/variant (MUST MATCH): ${item.notes}`:""}
+URL: ${item.url}
 
 STRICT RULES:
 - Check ONLY the exact URL above — do not search other retailers
-- Find the price for EXACTLY this product — same model, same size, same variant
-- If the page shows a different variant or the product is not found, return price: null
+- Find the price for EXACTLY this product — same model number, same size, same colour${item.notes?` — specifically: ${item.notes}`:""}
+- A Yeti 14oz is NOT the same as a Yeti 8oz — return price:null if wrong size/variant
+- If the page shows a different variant, size or model, return price: null
 - Do NOT substitute similar products under any circumstances
 
 Return ONLY valid JSON:
@@ -1162,7 +1200,9 @@ window.checkOne=async function(id){
       cstatus[id]='checking prices...';render();
       // Search for product ID if not stored
       if(!item.pricesApiId){
-        const found=await searchPricesAPI(item.name+(item.notes?' '+item.notes:''));
+        // Build specific search: name + model number. Notes often has the exact variant.
+        const searchQ=[item.name,item.notes].filter(Boolean).join(' ').trim();
+        const found=await searchPricesAPI(searchQ);
         if(found) item.pricesApiId=found.id;
       }
       if(item.pricesApiId){
@@ -1510,6 +1550,61 @@ function checkNotifPerm(){
 }
 
 // ── Bulk select ──
+function wrongProduct(id){
+  const item=items.find(i=>i.id===id);
+  if(!item) return;
+  delete item.pricesApiId;
+  scheduleSave();
+  showToast('PricesAPI ID cleared — next check will re-search');
+  render();
+}
+function toggleHistManage(id){
+  if(histManage.has(id)){ histManage.delete(id); if(histSel[id]) histSel[id].clear(); }
+  else { histManage.add(id); if(!histSel[id]) histSel[id]=new Set(); }
+  render();
+}
+function toggleHistEntry(id, ts, checked){
+  if(!histSel[id]) histSel[id]=new Set();
+  if(checked) histSel[id].add(ts); else histSel[id].delete(ts);
+  // update count label without full re-render
+  const bar=document.querySelector(`[data-id="${id}"] .hist-count`);
+  if(bar) bar.textContent=histSel[id].size+' selected';
+  const delBtn=document.querySelector(`[data-id="${id}"] .hist-manage-bar button`);
+  if(delBtn) delBtn.disabled=histSel[id].size===0;
+}
+function selectAllHist(id, checked){
+  const ph=(histories[id]||[]).filter(p=>p.price!=null);
+  if(!histSel[id]) histSel[id]=new Set();
+  if(checked) ph.forEach(p=>histSel[id].add(p.checkedAt));
+  else histSel[id].clear();
+  render();
+}
+function deleteHistEntries(id){
+  const toDelete=histSel[id];
+  if(!toDelete||!toDelete.size) return;
+  const count=toDelete.size;
+  histories[id]=(histories[id]||[]).filter(p=>!toDelete.has(p.checkedAt));
+  // recalculate currentPrice from latest remaining entry
+  const item=items.find(i=>i.id===id);
+  if(item){
+    const remaining=(histories[id]||[]).filter(p=>p.price!=null);
+    if(remaining.length){
+      const latest=remaining[remaining.length-1];
+      item.currentPrice=latest.price;
+      item.store=latest.store||item.store;
+    } else {
+      item.currentPrice=null;
+    }
+    // recalculate allTimeLow
+    const allPrices=remaining.map(p=>p.price);
+    item.allTimeLow=allPrices.length?Math.min(...allPrices):null;
+  }
+  histSel[id].clear();
+  histManage.delete(id);
+  scheduleSave();
+  showToast(`Deleted ${count} price entr${count>1?'ies':'y'}`);
+  render();
+}
 function toggleSelect(id){
   if(selectedItems.has(id)) selectedItems.delete(id);
   else selectedItems.add(id);
