@@ -80,8 +80,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .btn.full{width:100%;padding:12px;margin-top:4px}
 
 /* ── Dashboard ── */
-.dash{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.5rem}
-@media(max-width:750px){.dash{grid-template-columns:repeat(3,1fr)}}
+.dash{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.5rem}
+@media(max-width:850px){.dash{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:460px){.dash{grid-template-columns:repeat(2,1fr)}}
 .dc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px}
 .dc.hl{border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.03)}
@@ -171,6 +171,36 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .sec-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── Bulk select ── */
+.item-card.selectable{cursor:pointer}
+.item-card.selected{border-color:var(--blue)!important;background:rgba(96,165,250,0.04)}
+.item-cb{width:18px;height:18px;border-radius:5px;border:2px solid var(--border2);background:var(--surface2);flex-shrink:0;display:none;align-items:center;justify-content:center;margin-right:2px;transition:all .15s}
+.item-cb.checked{background:var(--blue);border-color:var(--blue)}
+.item-cb::after{content:'✓';font-size:11px;color:#fff;display:none;font-weight:700}
+.item-cb.checked::after{display:block}
+.bulk-mode .item-cb{display:flex}
+.bulk-bar{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:1rem;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.bulk-bar.visible{display:flex}
+.bulk-info{font-size:13px;font-weight:500}
+.bulk-info span{color:var(--blue)}
+.bulk-actions-row{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── Best deal ── */
+.item-card.best-deal{border-color:rgba(251,191,36,0.4)!important}
+.best-deal-badge{font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(251,191,36,0.12);color:var(--amber);font-weight:600;white-space:nowrap}
+
+/* ── Mini sparkline on card ── */
+.mini-spark{display:flex;align-items:center;margin-top:3px}
+.mini-spark svg{display:block}
+
+/* ── Last checked prominent ── */
+.last-checked-row{display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)}
+.last-checked-row:last-child{border-bottom:none}
+abbr{text-decoration:underline dotted;text-underline-offset:2px;cursor:help}
+
+/* ── Empty state improved ── */
+.empty-action{margin-top:16px}
 </style>
 </head>
 <body>
@@ -321,6 +351,7 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
       <div class="dc"><div class="dc-val" id="d-close" style="color:var(--amber)">0</div><div class="dc-lbl">Within 10%</div></div>
       <div class="dc"><div class="dc-val" id="d-over" style="color:var(--red)">0</div><div class="dc-lbl">Above target</div></div>
       <div class="dc"><div class="dc-val" id="d-save" style="font-size:20px;color:var(--text2)">–</div><div class="dc-lbl">Still to save</div></div>
+      <div class="dc" style="border-color:rgba(251,191,36,0.2);background:rgba(251,191,36,0.03)"><div class="dc-val" id="d-bestdeal" style="font-size:20px;color:var(--amber)">–</div><div class="dc-lbl">⭐ Best deal</div><div style="font-size:9px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-bestdeal-name">–</div></div>
     </div>
 
     <div id="prog-wrap">
@@ -376,12 +407,22 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
       </div>
     </div>
 
+    <div id="bulk-bar" class="bulk-bar">
+      <div class="bulk-info"><span id="bulk-count">0</span> item<span id="bulk-plural">s</span> selected</div>
+      <div class="bulk-actions-row">
+        <button class="btn sm" id="bulk-check">↻ Check selected</button>
+        <button class="btn sm" id="bulk-delete" style="color:var(--red)">✕ Delete selected</button>
+        <button class="btn sm" id="bulk-cancel">Cancel</button>
+      </div>
+    </div>
+
     <div class="toolbar">
       <button class="fb active" data-f="all">All</button>
       <button class="fb" data-f="good">At target</button>
       <button class="fb" data-f="close">Close</button>
       <button class="fb" data-f="over">Above</button>
       <button class="fb" data-f="none">Unchecked</button>
+      <button class="fb" id="btn-bulk-mode">☑ Select</button>
       <input class="search-input" id="search-inp" placeholder="Search..."/>
     </div>
 
@@ -410,6 +451,7 @@ let orKey='', currentUser=null;
 let activeFilter='all', searchQ='';
 let syncDebounce=null, pendingImageUrl=null;
 let findingRetailers=new Set();
+let bulkMode=false, selectedItems=new Set();
 const fxCache={rates:{},fetchedAt:0};
 
 async function toAUD(amount, currency){
@@ -600,9 +642,52 @@ function updateORPill(){
 
 // ── Spark chart ──
 function sparkSVG(id,W,H){
-  const ph=(histories[id]||[]).filter(p=>p.price!=null).slice(-20);
+  const ph=(histories[id]||[]).filter(p=>p.price!=null).slice(-30);
   if(ph.length<2) return '<p style="font-size:11px;color:var(--text3)">Need 2+ checks for trend</p>';
-  const prices=ph.map(p=>p.price),mn=Math.min(...prices),mx=Math.max(...prices),rng=mx-mn||1,pad=5;
+  const prices=ph.map(p=>p.price),mn=Math.min(...prices),mx=Math.max(...prices),rng=mx-mn||1,pad=8;
+  const pts=prices.map((p,i)=>{
+    const x=pad+(i/(prices.length-1))*(W-pad*2);
+    const y=pad+(1-(p-mn)/rng)*(H-pad*2-16);
+    return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+  const item=items.find(x=>x.id===id);
+  const stroke=status(item)==='good'?'#4ade80':status(item)==='close'?'#fbbf24':'#f87171';
+  const last=pts.split(' ').pop().split(',');
+  const firstX=pts.split(' ')[0].split(',')[0];
+  const area=`M${firstX},${H-16} L${pts.split(' ').join(' L')} L${last[0]},${H-16} Z`;
+  const gid='g'+id.slice(-4);
+  // Date labels: first, middle, last
+  const dates=[ph[0],ph[Math.floor(ph.length/2)],ph[ph.length-1]];
+  const dateLabels=dates.map((p,i)=>{
+    const x=i===0?pad:i===1?(W/2):W-pad;
+    return `<text x="${x}" y="${H-2}" text-anchor="${i===0?'start':i===1?'middle':'end'}" fill="var(--text3)" font-size="9" font-family="Inter,sans-serif">${new Date(p.checkedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short'})}</text>`;
+  }).join('');
+  // Price labels: min and max
+  const maxPt=prices.map((p,i)=>({p,i})).reduce((a,b)=>b.p>a.p?b:a);
+  const maxX=pad+(maxPt.i/(prices.length-1))*(W-pad*2);
+  const maxY=pad+(1-(maxPt.p-mn)/rng)*(H-pad*2-16);
+  return`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:${H}px;overflow:visible">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${stroke}" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="${stroke}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <path d="${area}" fill="url(#${gid})"/>
+    <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    ${prices.map((p,i)=>{
+      const cx=pad+(i/(prices.length-1))*(W-pad*2);
+      const cy=pad+(1-(p-mn)/rng)*(H-pad*2-16);
+      return`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${i===prices.length-1?3:1.5}" fill="${stroke}" opacity="${i===prices.length-1?1:0.5}"/>`;
+    }).join('')}
+    <text x="${(parseFloat(last[0])).toFixed(0)}" y="${(parseFloat(last[1])-6).toFixed(0)}" fill="${stroke}" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">$${prices[prices.length-1].toFixed(0)}</text>
+    ${dateLabels}
+  </svg>`;
+}
+
+function miniSparkSVG(id){
+  const ph=(histories[id]||[]).filter(p=>p.price!=null).slice(-12);
+  if(ph.length<2) return '';
+  const W=64,H=20,pad=2;
+  const prices=ph.map(p=>p.price),mn=Math.min(...prices),mx=Math.max(...prices),rng=mx-mn||1;
   const pts=prices.map((p,i)=>{
     const x=pad+(i/(prices.length-1))*(W-pad*2);
     const y=pad+(1-(p-mn)/rng)*(H-pad*2);
@@ -611,17 +696,9 @@ function sparkSVG(id,W,H){
   const item=items.find(x=>x.id===id);
   const stroke=status(item)==='good'?'#4ade80':status(item)==='close'?'#fbbf24':'#f87171';
   const last=pts.split(' ').pop().split(',');
-  const firstX=pts.split(' ')[0].split(',')[0];
-  const area=`M${firstX},${H} L${pts.split(' ').join(' L')} L${last[0]},${H} Z`;
-  const gid='g'+id.slice(-4);
-  return`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:${H}px">
-    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${stroke}" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="${stroke}" stop-opacity="0"/>
-    </linearGradient></defs>
-    <path d="${area}" fill="url(#${gid})"/>
-    <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${stroke}"/>
+  return`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block">
+    <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+    <circle cx="${last[0]}" cy="${last[1]}" r="2" fill="${stroke}"/>
   </svg>`;
 }
 
@@ -635,10 +712,11 @@ function verdictStyle(v){
   return '';
 }
 
-function renderItem(item){
+function renderItem(item, isBestDeal){
   const st=status(item),isC=checking.has(item.id),isExp=expanded.has(item.id),isErr=cstatus[item.id]==='error';
+  const isSel=selectedItems.has(item.id);
   const ph=(histories[item.id]||[]).filter(p=>p.price!=null);
-  const histRows=ph.slice(-6).reverse().map(p=>`<tr>
+  const histRows=ph.slice(-8).reverse().map(p=>`<tr>
     <td>${new Date(p.checkedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short'})}</td>
     <td>${new Date(p.checkedAt).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}</td>
     <td>${fmtA(p.price)}${p.originalPrice?` <span style="color:var(--text3);font-size:10px">${fmtOrig(p.originalPrice)}</span>`:''}</td>
@@ -666,15 +744,25 @@ function renderItem(item){
       <span class="ps-v ${c.price!=null&&item.currentPrice!=null&&c.price<item.currentPrice?'g':''}">${fmtA(c.price)}</span>
     </div>`).join('');
 
-  return`<div class="item-card" data-id="${item.id}">
-    <div class="item-row" onclick="toggleExp('${item.id}')">
+  // Mini sparkline
+  const miniSpark=ph.length>=2?`<div class="mini-spark">${miniSparkSVG(item.id)}</div>`:'';
+
+  // Last checked full timestamp
+  const lcFull=item.lastChecked?new Date(item.lastChecked).toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'Never';
+
+  // Card click handler — bulk select vs expand
+  const cardClick=bulkMode?`toggleSelect('${item.id}')`:`toggleExp('${item.id}')`;
+
+  return`<div class="item-card${isBestDeal?' best-deal':''}${isSel?' selected':''}" data-id="${item.id}">
+    <div class="item-row" onclick="${cardClick}">
       <div class="accent ${isC?'checking':isErr?'error':st}"></div>
       <div class="item-inner">
+        ${bulkMode?`<div class="item-cb${isSel?' checked':''}" onclick="event.stopPropagation();toggleSelect('${item.id}')"></div>`:''}
         <div class="item-img">${imgHtml}</div>
         <div class="item-info">
-          <div class="item-name">${esc(item.name)}${item.category?` <span style="font-size:10px;color:var(--text3);font-weight:400">${esc(item.category)}</span>`:''}</div>
+          <div class="item-name">${esc(item.name)}${item.category?` <span style="font-size:10px;color:var(--text3);font-weight:400">${esc(item.category)}</span>`:''}${isBestDeal&&!bulkMode?' <span class="best-deal-badge">⭐ best deal</span>':''}</div>
           <div class="item-meta">${esc(domain(item.url))}${item.store?' · '+esc(item.store):''}${item.notes?' · '+esc(item.notes):''}</div>
-          <div class="item-stxt ${sCls}">${sTxt}</div>
+          <div class="item-stxt ${sCls}"><abbr title="${lcFull}">${sTxt}</abbr></div>
         </div>
       </div>
       <div class="item-prices">
@@ -686,17 +774,18 @@ function renderItem(item){
           ${!isC&&item.verdict&&item.verdict!=='no data'?`<span class="badge" style="${vStyle}">${item.verdict}</span>`:''}
         </div>
         ${!isC&&atlBadge?`<div style="margin-top:2px">${atlBadge}</div>`:''}
+        ${!isC&&miniSpark}
       </div>
     </div>
-    <div class="item-detail ${isExp?'open':''}">
+    <div class="item-detail ${isExp&&!bulkMode?'open':''}">
       <div class="detail-grid">
         <div>
-          <div class="dlbl">Price history</div>
+          <div class="dlbl">Price history (last ${Math.min(ph.length,8)})</div>
           ${ph.length?`<table class="hist-table"><thead><tr><th>Date</th><th>Time</th><th>Price</th><th>Store</th></tr></thead><tbody>${histRows}</tbody></table>`:'<p style="font-size:11px;color:var(--text3)">No history yet — hit Refresh</p>'}
         </div>
         <div>
-          <div class="dlbl">Trend</div>
-          <div class="sparkwrap">${sparkSVG(item.id,200,60)}</div>
+          <div class="dlbl">Trend (${ph.length} checks)</div>
+          <div class="sparkwrap" style="height:90px">${sparkSVG(item.id,200,90)}</div>
           ${competitors.length?`<div class="dlbl" style="margin-top:12px">Compare prices</div>${competitorRows}`:''}
         </div>
         <div>
@@ -708,6 +797,8 @@ function renderItem(item){
           <div class="ps-row"><span class="ps-l">Highest seen</span><span class="ps-v r">${fmtA(hi)}</span></div>
           ${diff!=null?`<div class="ps-row"><span class="ps-l">${diff<=0?'Saving':'To save'}</span><span class="ps-v ${diff<=0?'g':'r'}">${diff<=0?fmtP(Math.abs(diff))+' saved':fmtP(diff)+' to go'}</span></div>`:''}
           <div class="ps-row"><span class="ps-l">Checks</span><span class="ps-v">${ph.length}</span></div>
+          <div class="ps-row"><span class="ps-l">Last checked</span><span class="ps-v" style="font-size:10px;color:var(--text2)">${item.lastChecked?new Date(item.lastChecked).toLocaleString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'–'}</span></div>
+          <div class="ps-row"><span class="ps-l">Added</span><span class="ps-v" style="font-size:10px;color:var(--text2)">${item.addedAt?new Date(item.addedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'}):'–'}</span></div>
         </div>
       </div>
       <div class="det-actions">
@@ -747,20 +838,49 @@ function filtered(){
 function render(){
   const l=filtered();
   document.getElementById('count-lbl').textContent=`Watchlist · ${l.length} item${l.length!==1?'s':''}`;
-  document.getElementById('items-grid').innerHTML=l.length?l.map(renderItem).join(''):`<div class="empty">
-    <div class="empty-icon">🛒</div>
-    <div class="empty-title">${items.length?'No items match':'Watchlist is empty'}</div>
-    <div class="empty-desc">${items.length?'Try a different filter.':'Add products from JB Hi-Fi, Kogan, Amazon AU,<br>Harvey Norman, Bing Lee, Officeworks and more.'}</div>
+  // Find best deal: item with lowest currentPrice/targetPrice ratio (must have both)
+  let bestDealId=null;
+  const candidates=items.filter(i=>i.currentPrice!=null&&i.targetPrice&&i.targetPrice>0);
+  if(candidates.length){
+    const best=candidates.reduce((a,b)=>(a.currentPrice/a.targetPrice)<=(b.currentPrice/b.targetPrice)?a:b);
+    bestDealId=best.id;
+  }
+  // Update bulk bar
+  const bar=document.getElementById('bulk-bar');
+  const cnt=selectedItems.size;
+  if(bulkMode&&cnt>0){
+    bar.classList.add('visible');
+    document.getElementById('bulk-count').textContent=cnt;
+    document.getElementById('bulk-plural').textContent=cnt===1?'':'s';
+  } else {
+    bar.classList.remove('visible');
+  }
+  document.getElementById('items-grid').innerHTML=l.length?l.map(i=>renderItem(i,i.id===bestDealId)).join(''):`<div class="empty">
+    <div class="empty-icon">${items.length?'🔍':'🛒'}</div>
+    <div class="empty-title">${items.length?'No items match this filter':'Your watchlist is empty'}</div>
+    <div class="empty-desc">${items.length?'Try switching to "All" or clearing the search.':'Start tracking prices from JB Hi-Fi, Kogan, Amazon AU,<br>Harvey Norman, Bing Lee and more.<br><br>Paste any product URL and AI fills in the details.'}</div>
+    ${!items.length?`<div class="empty-action"><button class="btn pri" onclick="showAddPanel()">+ Add your first item</button></div>`:''}
   </div>`;
-  updateDash();
+  updateDash(bestDealId);
 }
-function updateDash(){
+function updateDash(bestDealId){
   document.getElementById('d-total').textContent=items.length;
   document.getElementById('d-good').textContent=items.filter(i=>status(i)==='good').length;
   document.getElementById('d-close').textContent=items.filter(i=>status(i)==='close').length;
   document.getElementById('d-over').textContent=items.filter(i=>status(i)==='over').length;
   const ots=items.filter(i=>status(i)==='over').reduce((a,i)=>a+(i.currentPrice-i.targetPrice),0);
   document.getElementById('d-save').textContent=ots>0?'$'+ots.toFixed(0):'–';
+  // Best deal tile
+  const bdEl=document.getElementById('d-bestdeal');
+  if(bestDealId){
+    const bd=items.find(i=>i.id===bestDealId);
+    const pct=bd&&bd.targetPrice?Math.round((1-(bd.currentPrice/bd.targetPrice))*100):0;
+    bdEl.textContent=bd?(pct>=0?pct+'% off':'at target'):'–';
+    document.getElementById('d-bestdeal-name').textContent=bd?bd.name.slice(0,22):'–';
+  } else {
+    bdEl.textContent='–';
+    document.getElementById('d-bestdeal-name').textContent='No data yet';
+  }
 }
 
 // ── Find AU retailers ──
@@ -939,7 +1059,7 @@ window.checkOne=async function(id){
         checkedAt:Date.now(),
         store:res.store||null
       });
-      if(histories[id].length>30)histories[id]=histories[id].slice(-30);
+      if(histories[id].length>100)histories[id]=histories[id].slice(-100);
     }
     if(res.imageUrl&&res.imageUrl.startsWith('https://'))item.imageUrl=res.imageUrl;
     if(res.price!=null){
@@ -1194,10 +1314,31 @@ document.getElementById('btn-save').onclick=function(){
 
 // Filters & search
 document.querySelectorAll('.fb').forEach(b=>b.onclick=function(){
-  document.querySelectorAll('.fb').forEach(x=>x.classList.remove('active'));
+  if(this.id==='btn-bulk-mode'){
+    bulkMode?exitBulkMode():enterBulkMode();
+    return;
+  }
+  document.querySelectorAll('.fb').forEach(x=>{if(x.id!=='btn-bulk-mode')x.classList.remove('active');});
   this.classList.add('active');activeFilter=this.dataset.f;render();
 });
 document.getElementById('search-inp').oninput=function(){searchQ=this.value.toLowerCase().trim();render()};
+document.getElementById('bulk-cancel').onclick=exitBulkMode;
+document.getElementById('bulk-delete').onclick=async function(){
+  if(!selectedItems.size)return;
+  const ids=[...selectedItems];
+  if(!confirm(`Delete ${ids.length} item${ids.length>1?'s':''}? This cannot be undone.`))return;
+  items=items.filter(i=>!ids.includes(i.id));
+  ids.forEach(id=>delete histories[id]);
+  exitBulkMode();
+  scheduleSave();showToast(`Deleted ${ids.length} item${ids.length>1?'s':''}`);
+};
+document.getElementById('bulk-check').onclick=async function(){
+  if(!selectedItems.size)return;
+  const ids=[...selectedItems];
+  exitBulkMode();
+  for(const id of ids) await window.checkOne(id);
+  showToast(`Checked ${ids.length} item${ids.length>1?'s':''}`);
+};
 document.getElementById('btn-expand-all').onclick=function(){
   const allExpanded=filtered().every(i=>expanded.has(i.id));
   filtered().forEach(i=>allExpanded?expanded.delete(i.id):expanded.add(i.id));
@@ -1207,6 +1348,29 @@ document.getElementById('btn-expand-all').onclick=function(){
 
 function checkNotifPerm(){
   document.getElementById('notif-bar').style.display=typeof Notification!=='undefined'&&Notification.permission==='default'?'flex':'none';
+}
+
+// ── Bulk select ──
+function toggleSelect(id){
+  if(selectedItems.has(id)) selectedItems.delete(id);
+  else selectedItems.add(id);
+  render();
+}
+function enterBulkMode(){
+  bulkMode=true;
+  selectedItems.clear();
+  document.getElementById('items-grid').classList.add('bulk-mode');
+  document.getElementById('btn-bulk-mode').classList.add('active');
+  document.getElementById('btn-bulk-mode').textContent='✕ Cancel';
+  render();
+}
+function exitBulkMode(){
+  bulkMode=false;
+  selectedItems.clear();
+  document.getElementById('items-grid').classList.remove('bulk-mode');
+  document.getElementById('btn-bulk-mode').classList.remove('active');
+  document.getElementById('btn-bulk-mode').textContent='☑ Select';
+  render();
 }
 
 // ── Init: check for existing session ──
