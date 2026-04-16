@@ -9,14 +9,15 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0c0c0e;--surface:#141416;--surface2:#1c1c1f;--surface3:#242428;
-  --border:#2a2a2f;--border2:#35353c;
-  --text:#f4f4f5;--text2:#a1a1aa;--text3:#52525b;
+  --bg:#0d0c16;--surface:#141220;--surface2:#1b1928;--surface3:#232135;
+  --border:#2c2a42;--border2:#3a3858;
+  --text:#eeedf8;--text2:#9896bf;--text3:#56547a;
+  --accent:#818cf8;--accent-bg:rgba(129,140,248,0.1);--accent-border:rgba(129,140,248,0.3);
   --green:#4ade80;--green-bg:rgba(74,222,128,0.08);
   --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.08);
   --red:#f87171;--red-bg:rgba(248,113,113,0.08);
   --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.1);
-  --r:10px;--r-lg:14px;--r-xl:18px;
+  --r:10px;--r-lg:16px;--r-xl:20px;
 }
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;line-height:1.5}
 
@@ -28,7 +29,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .auth-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:1.75rem}
 .auth-label{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
 .auth-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;padding:11px 14px;margin-bottom:12px;transition:border-color .15s}
-.auth-input:focus{outline:none;border-color:#505058}
+.auth-input:focus{outline:none;border-color:var(--accent)}
 .auth-error{font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid rgba(248,113,113,.2);border-radius:var(--r);padding:8px 12px;margin-bottom:12px;display:none}
 .auth-success{font-size:12px;color:var(--green);background:var(--green-bg);border:1px solid rgba(74,222,128,.2);border-radius:var(--r);padding:8px 12px;margin-bottom:12px;display:none}
 .auth-divider{display:flex;align-items:center;gap:10px;margin:1.25rem 0;color:var(--text3);font-size:11px}
@@ -37,7 +38,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .auth-link:hover{color:var(--text)}
 
 /* ── Modal ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem}
 .modal-overlay.open{display:flex}
 .modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-xl);padding:2rem;max-width:500px;width:100%;max-height:90vh;overflow-y:auto}
 .modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
@@ -49,7 +50,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .msec-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
 .m-lbl{display:block;font-size:11px;color:var(--text3);margin-bottom:4px}
 .m-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 12px;margin-bottom:8px}
-.m-input:focus{outline:none;border-color:#505058}
+.m-input:focus{outline:none;border-color:var(--accent)}
 .status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:99px;font-weight:500}
 .status-pill.ok{background:var(--green-bg);color:var(--green)}
 .status-pill.missing{background:var(--surface2);color:var(--text3)}
@@ -57,13 +58,14 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 /* ── App ── */
 #app{display:none}
 .wrap{max-width:1100px;margin:0 auto;padding:1.5rem 1rem 4rem}
-.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.75rem;gap:12px;flex-wrap:wrap}
-.hdr-l{display:flex;align-items:center;gap:10px}
-.hdr-title{font-size:18px;font-weight:700;letter-spacing:-.2px}
-.hdr-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;gap:12px;flex-wrap:wrap;padding-bottom:1.25rem;border-bottom:1px solid var(--border)}
+.hdr-l{display:flex;align-items:center;gap:12px}
+.hdr-brand-icon{width:38px;height:38px;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.hdr-title{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.hdr-sub{font-size:12px;color:var(--text3);margin-top:2px}
 .hdr-r{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .sync-pill{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:4px 10px}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);transition:background .3s;flex-shrink:0}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);transition:background .3s;flex-shrink:0}
 .sync-dot.ok{background:var(--green)}
 .sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite}
 .sync-dot.error{background:var(--red)}
@@ -71,22 +73,29 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ── Buttons ── */
-.btn{border:1px solid var(--border2);border-radius:var(--r);background:transparent;color:var(--text);cursor:pointer;padding:8px 16px;font-size:13px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s;white-space:nowrap}
-.btn:hover{background:var(--surface2)}
+.btn{border:1px solid var(--border2);border-radius:var(--r);background:transparent;color:var(--text2);cursor:pointer;padding:8px 16px;font-size:13px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s;white-space:nowrap}
+.btn:hover{background:var(--surface2);color:var(--text)}
 .btn:disabled{opacity:.35;cursor:default}
-.btn.pri{background:var(--text);color:var(--bg);border-color:transparent;font-weight:600}
-.btn.pri:hover:not(:disabled){background:#d4d4d8}
+.btn.pri{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
+.btn.pri:hover:not(:disabled){background:#6d76e8}
 .btn.sm{padding:6px 13px;font-size:12px}
 .btn.full{width:100%;padding:12px;margin-top:4px}
 
-/* ── Dashboard ── */
+/* ── Dashboard tiles ── */
 .dash{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.5rem}
 @media(max-width:850px){.dash{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:460px){.dash{grid-template-columns:repeat(2,1fr)}}
-.dc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px}
+.dc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 16px;cursor:pointer;transition:all .2s;user-select:none}
+.dc:hover{border-color:var(--border2);background:var(--surface2)}
 .dc.hl{border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.03)}
-.dc-val{font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;line-height:1}
-.dc-lbl{font-size:10px;color:var(--text3);margin-top:6px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.dc.tile-active{border-color:var(--accent)!important;background:var(--accent-bg)!important}
+.dc.tile-active.hl{border-color:rgba(74,222,128,.5)!important;background:rgba(74,222,128,.1)!important}
+.dc.tile-amber-active{border-color:rgba(251,191,36,.5)!important;background:rgba(251,191,36,.07)!important}
+.dc.tile-red-active{border-color:rgba(248,113,113,.5)!important;background:rgba(248,113,113,.07)!important}
+.dc.tile-gold-active{border-color:rgba(251,191,36,.5)!important;background:rgba(251,191,36,.06)!important}
+.dc-val{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;line-height:1}
+.dc-lbl{font-size:10px;color:var(--text3);margin-top:7px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.dc-sub{font-size:9px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ── Progress ── */
 #prog-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:1rem;display:none}
@@ -103,77 +112,88 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 @media(max-width:540px){.fg3{grid-template-columns:1fr}}
 .field label{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
 .field input,.field select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:13px;font-family:'Inter',sans-serif;padding:9px 12px}
-.field input:focus,.field select:focus{outline:none;border-color:#505058}
+.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
 .field input::placeholder{color:var(--text3)}
 .form-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 .lookup-loading{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--blue);padding:8px 0}
-.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 
 /* ── Toolbar ── */
-.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
-.fb{border:1px solid var(--border);border-radius:99px;background:transparent;color:var(--text2);cursor:pointer;padding:5px 13px;font-size:12px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s}
+.toolbar{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.fb{border:1px solid var(--border);border-radius:99px;background:transparent;color:var(--text3);cursor:pointer;padding:5px 13px;font-size:12px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s}
 .fb:hover{color:var(--text);border-color:var(--border2)}
 .fb.active{background:var(--surface2);border-color:var(--border2);color:var(--text)}
 .search-input{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;font-family:'Inter',sans-serif;padding:6px 12px;width:180px;margin-left:auto}
-.search-input:focus{outline:none;border-color:var(--border2)}
+.search-input:focus{outline:none;border-color:var(--accent)}
 .search-input::placeholder{color:var(--text3)}
+/* Sort bar */
+.sort-bar{display:flex;align-items:center;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
+.sort-lbl{font-size:11px;color:var(--text3);font-weight:500;margin-right:2px;white-space:nowrap}
+.sb{border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text3);cursor:pointer;padding:4px 11px;font-size:11px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s;white-space:nowrap}
+.sb:hover{color:var(--text);border-color:var(--border2)}
+.sb.active{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent)}
 
 /* ── Items ── */
 .items-grid{display:flex;flex-direction:column;gap:8px}
 .item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;transition:border-color .2s}
 .item-card:hover{border-color:var(--border2)}
-.item-row{display:grid;grid-template-columns:3px 1fr auto;cursor:pointer;align-items:center}
-.accent{width:3px;align-self:stretch;transition:background .3s}
+.item-row{display:grid;grid-template-columns:4px 1fr auto;cursor:pointer;align-items:stretch}
+.accent{width:4px;align-self:stretch;transition:background .3s}
 .accent.good{background:var(--green)}.accent.close{background:var(--amber)}.accent.over{background:var(--red)}
 .accent.none,.accent.checking,.accent.error{background:var(--border)}
-.item-inner{display:flex;align-items:center;gap:12px;padding:12px 14px;min-width:0}
-.item-img{width:46px;height:46px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.item-img img.prod{width:46px;height:46px;object-fit:cover}
-.item-img img.fav{width:22px;height:22px;object-fit:contain}
+.item-inner{display:flex;align-items:center;gap:14px;padding:16px 18px;min-width:0}
+.item-img{width:48px;height:48px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.item-img img.prod{width:48px;height:48px;object-fit:cover}
+.item-img img.fav{width:24px;height:24px;object-fit:contain}
 .item-img .ph{font-size:22px;opacity:.3}
 .item-info{min-width:0;flex:1}
-.item-name{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item-meta{font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item-stxt{font-size:11px;margin-top:3px}
+.item-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px}
+.item-meta{font-size:11px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-stxt{font-size:11px;margin-top:4px}
 .item-stxt.checking{color:var(--blue)}.item-stxt.error{color:var(--red)}.item-stxt.ok{color:var(--text3)}
-.item-prices{padding:12px 14px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;min-width:150px}
-@media(max-width:500px){.item-prices{min-width:110px}}
-.price-now{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.item-prices{padding:16px 18px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;min-width:165px}
+@media(max-width:500px){.item-prices{min-width:120px}}
+.price-now{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px}
 .price-now.good{color:var(--green)}.price-now.close{color:var(--amber)}.price-now.over{color:var(--red)}.price-now.none{color:var(--text2)}
 .price-tgt{font-size:11px;color:var(--text3)}
 .badge{font-size:10px;padding:3px 9px;border-radius:99px;font-weight:600;white-space:nowrap}
 .badge.good{background:var(--green-bg);color:var(--green)}.badge.close{background:var(--amber-bg);color:var(--amber)}
 .badge.over{background:var(--red-bg);color:var(--red)}.badge.none{background:var(--surface2);color:var(--text3)}
 .badge.checking{background:var(--blue-bg);color:var(--blue)}.badge.error{background:var(--red-bg);color:var(--red)}
-.item-detail{border-top:1px solid var(--border);padding:16px;display:none;background:var(--surface2)}
+.item-detail{border-top:1px solid var(--border);padding:18px;display:none;background:var(--surface2)}
 .item-detail.open{display:block}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:14px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin-bottom:0}
 @media(max-width:620px){.detail-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:400px){.detail-grid{grid-template-columns:1fr}}
-.dlbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.detail-grid > div{padding:0 16px}
+.detail-grid > div:first-child{padding-left:0}
+.detail-grid > div:last-child{padding-right:0}
+.detail-grid > div + div{border-left:1px solid var(--border)}
+.dlbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
 .hist-table{width:100%;border-collapse:collapse;font-size:11px;font-family:'JetBrains Mono',monospace}
 .hist-table th{color:var(--text3);font-weight:400;text-align:left;padding:3px 0;border-bottom:1px solid var(--border)}
 .hist-table td{padding:5px 0;color:var(--text2);border-bottom:1px solid var(--border)}
 .hist-table tbody tr:first-child td{color:var(--text);font-weight:500}
 .hist-table tbody tr:last-child td{border-bottom:none}
-.sparkwrap{height:64px}
-.ps-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border)}
+.sparkwrap{height:90px}
+.ps-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)}
 .ps-row:last-child{border-bottom:none}
 .ps-l{color:var(--text3)}.ps-v{font-family:'JetBrains Mono',monospace;font-weight:500}
 .ps-v.g{color:var(--green)}.ps-v.r{color:var(--red)}
-.det-actions{display:flex;gap:6px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--border)}
+.det-actions{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid var(--border);background:var(--surface);margin:0 -18px -18px}
 .notif-bar{background:var(--blue-bg);border:1px solid rgba(96,165,250,.2);border-radius:var(--r);padding:10px 14px;margin-bottom:1rem;font-size:12px;color:var(--blue);display:flex;align-items:center;justify-content:space-between;gap:8px}
 .empty{text-align:center;padding:4rem 2rem;color:var(--text3)}
 .empty-icon{font-size:40px;margin-bottom:12px;opacity:.4}
 .empty-title{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:6px}
 .empty-desc{font-size:13px;line-height:1.7}
+.empty-action{margin-top:16px}
 #toast{position:fixed;bottom:20px;right:20px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 16px;font-size:13px;color:var(--text);display:none;z-index:200;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.6)}
 .sec-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.active-filter-tag{font-size:10px;color:var(--accent);background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:99px;padding:1px 8px;margin-left:6px;font-weight:500;text-transform:none;letter-spacing:0}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
 /* ── Bulk select ── */
-.item-card.selectable{cursor:pointer}
 .item-card.selected{border-color:var(--blue)!important;background:rgba(96,165,250,0.04)}
 .item-cb{width:18px;height:18px;border-radius:5px;border:2px solid var(--border2);background:var(--surface2);flex-shrink:0;display:none;align-items:center;justify-content:center;margin-right:2px;transition:all .15s}
 .item-cb.checked{background:var(--blue);border-color:var(--blue)}
@@ -187,20 +207,19 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .bulk-actions-row{display:flex;gap:6px;flex-wrap:wrap}
 
 /* ── Best deal ── */
-.item-card.best-deal{border-color:rgba(251,191,36,0.4)!important}
+.item-card.best-deal{border-color:rgba(251,191,36,0.35)!important}
 .best-deal-badge{font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(251,191,36,0.12);color:var(--amber);font-weight:600;white-space:nowrap}
 
-/* ── Mini sparkline on card ── */
-.mini-spark{display:flex;align-items:center;margin-top:3px}
+/* ── Mini sparkline ── */
+.mini-spark{display:flex;align-items:center;margin-top:4px}
 .mini-spark svg{display:block}
 
-/* ── Last checked prominent ── */
-.last-checked-row{display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)}
-.last-checked-row:last-child{border-bottom:none}
-abbr{text-decoration:underline dotted;text-underline-offset:2px;cursor:help}
+/* ── Source badge ── */
+.src-badge{font-size:9px;padding:2px 6px;border-radius:99px;font-weight:600;white-space:nowrap}
+.src-badge.prices-api{background:rgba(129,140,248,.12);color:var(--accent)}
+.src-badge.ai{background:var(--surface2);color:var(--text3)}
 
-/* ── Empty state improved ── */
-.empty-action{margin-top:16px}
+abbr{text-decoration:underline dotted;text-underline-offset:2px;cursor:help}
 </style>
 </head>
 <body>
@@ -267,6 +286,20 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
       </div>
     </div>
     <div class="msec">
+      <div class="msec-title">PricesAPI key <span style="font-size:10px;background:var(--green-bg);color:var(--green);border-radius:99px;padding:1px 7px;font-weight:600">free tier</span></div>
+      <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:8px">
+        Real-time AU price data — no AI needed. Free 1,000 calls/month.<br>
+        Get your key at <a href="https://pricesapi.io/signup" target="_blank" style="color:var(--text2)">pricesapi.io/signup</a> — used first, AI is fallback only.
+      </div>
+      <label class="m-lbl">API key</label>
+      <input class="m-input" id="set-prices-key" type="password" placeholder="pricesapi_..."/>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="status-pill missing" id="prices-pill">Not set</span>
+        <span style="font-size:11px;color:var(--text3)">Free for ~2 checks/day on 10 items</span>
+      </div>
+      <button class="btn sm pri" id="btn-save-priceskey" style="margin-top:10px">Save key</button>
+    </div>
+    <div class="msec">
       <div class="msec-title">OpenRouter API key</div>
       <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:8px">
         Used for price checking. Get one free at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--text2)">openrouter.ai/keys</a><br>
@@ -323,7 +356,7 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
   <div class="wrap">
     <div class="hdr">
       <div class="hdr-l">
-        <span style="font-size:22px">🏷️</span>
+        <div class="hdr-brand-icon">🏷️</div>
         <div>
           <div class="hdr-title">Price Tracker</div>
           <div class="hdr-sub" id="mem-sub">Loading...</div>
@@ -346,12 +379,12 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
     </div>
 
     <div class="dash">
-      <div class="dc"><div class="dc-val" id="d-total">0</div><div class="dc-lbl">Watching</div></div>
-      <div class="dc hl"><div class="dc-val" id="d-good" style="color:var(--green)">0</div><div class="dc-lbl">At target</div></div>
-      <div class="dc"><div class="dc-val" id="d-close" style="color:var(--amber)">0</div><div class="dc-lbl">Within 10%</div></div>
-      <div class="dc"><div class="dc-val" id="d-over" style="color:var(--red)">0</div><div class="dc-lbl">Above target</div></div>
-      <div class="dc"><div class="dc-val" id="d-save" style="font-size:20px;color:var(--text2)">–</div><div class="dc-lbl">Still to save</div></div>
-      <div class="dc" style="border-color:rgba(251,191,36,0.2);background:rgba(251,191,36,0.03)"><div class="dc-val" id="d-bestdeal" style="font-size:20px;color:var(--amber)">–</div><div class="dc-lbl">⭐ Best deal</div><div style="font-size:9px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-bestdeal-name">–</div></div>
+      <div class="dc" id="tile-all" onclick="tileClick('all','tile-all')"><div class="dc-val" id="d-total">0</div><div class="dc-lbl">Watching</div></div>
+      <div class="dc hl" id="tile-good" onclick="tileClick('good','tile-good')"><div class="dc-val" id="d-good" style="color:var(--green)">0</div><div class="dc-lbl">At target</div></div>
+      <div class="dc" id="tile-close" onclick="tileClick('close','tile-close')"><div class="dc-val" id="d-close" style="color:var(--amber)">0</div><div class="dc-lbl">Within 10%</div></div>
+      <div class="dc" id="tile-over" onclick="tileClick('over','tile-over')"><div class="dc-val" id="d-over" style="color:var(--red)">0</div><div class="dc-lbl">Above target</div></div>
+      <div class="dc" id="tile-save" onclick="tileClick('all','tile-all')"><div class="dc-val" id="d-save" style="font-size:20px;color:var(--text2)">–</div><div class="dc-lbl">Still to save</div></div>
+      <div class="dc" id="tile-best" onclick="tileClick('best','tile-best')" style="border-color:rgba(251,191,36,0.2);background:rgba(251,191,36,0.03)"><div class="dc-val" id="d-bestdeal" style="font-size:20px;color:var(--amber)">–</div><div class="dc-lbl">⭐ Best deal</div><div class="dc-sub" id="d-bestdeal-name">–</div></div>
     </div>
 
     <div id="prog-wrap">
@@ -426,6 +459,15 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
       <input class="search-input" id="search-inp" placeholder="Search..."/>
     </div>
 
+    <div class="sort-bar">
+      <span class="sort-lbl">Sort:</span>
+      <button class="sb active" id="sb-recent" onclick="setSort('recent','sb-recent')">Recently checked</button>
+      <button class="sb" id="sb-phl" onclick="setSort('phl','sb-phl')">Price high→low</button>
+      <button class="sb" id="sb-plh" onclick="setSort('plh','sb-plh')">Price low→high</button>
+      <button class="sb" id="sb-az" onclick="setSort('az','sb-az')">A→Z</button>
+      <button class="sb" id="sb-disc" onclick="setSort('disc','sb-disc')">Biggest discount</button>
+    </div>
+
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div class="sec-lbl" id="count-lbl" style="margin-bottom:0">Watchlist</div>
       <button class="btn sm" id="btn-expand-all">Expand all</button>
@@ -452,6 +494,8 @@ let activeFilter='all', searchQ='';
 let syncDebounce=null, pendingImageUrl=null;
 let findingRetailers=new Set();
 let bulkMode=false, selectedItems=new Set();
+let sortMode='recent', tileFilter='all';
+let pricesApiKey='';
 const fxCache={rates:{},fetchedAt:0};
 
 async function toAUD(amount, currency){
@@ -553,6 +597,7 @@ async function dbLoad(){
       items=data.items||[];
       histories=data.histories||{};
       orKey=data.or_key||'';
+      pricesApiKey=data.prices_api_key||'';
       retailers=data.retailers||[...DEFAULT_RETAILERS];
     } else {
       retailers=[...DEFAULT_RETAILERS];
@@ -567,7 +612,7 @@ async function dbSave(){
   if(!currentUser) return;
   setSyncStatus('syncing','saving...');
   try{
-    const payload={user_id:currentUser.id,items,histories,or_key:orKey,retailers,updated_at:new Date().toISOString()};
+    const payload={user_id:currentUser.id,items,histories,or_key:orKey,prices_api_key:pricesApiKey,retailers,updated_at:new Date().toISOString()};
     const {error}=await sb.from('watchlist').upsert(payload,{onConflict:'user_id'});
     if(error) throw error;
     setSyncStatus('ok','synced '+relTime(Date.now()));
@@ -627,6 +672,7 @@ async function bootApp(){
   document.getElementById('settings-email').textContent=currentUser?.email||'–';
   await dbLoad();
   updateORPill();
+  updatePricesApiPill();
   render();
   checkNotifPerm();
   document.getElementById('mem-sub').textContent=`Signed in as ${currentUser?.email||'–'}`;
@@ -723,6 +769,8 @@ function renderItem(item, isBestDeal){
     <td style="color:var(--text3)">${p.store?esc(p.store.slice(0,14)):''}</td>
   </tr>`).join('');
   const pClass=isC||isErr?'none':st;
+  const lastSrc=(histories[item.id]||[]).slice(-1)[0]?.source;
+  const srcTag=!isC&&!isErr&&lastSrc?`<span class="src-badge ${lastSrc==='pricesapi'?'prices-api':'ai'}">${lastSrc==='pricesapi'?'live data':'AI'}</span>`:'';
   const sTxt=isC?(cstatus[item.id]||'searching...'):isErr?'Check failed — click Refresh to retry':`Checked ${relTime(item.lastChecked)}`;
   const sCls=isC?'checking':isErr?'error':'ok';
   const phPrices=ph.map(p=>p.price);
@@ -762,7 +810,7 @@ function renderItem(item, isBestDeal){
         <div class="item-info">
           <div class="item-name">${esc(item.name)}${item.category?` <span style="font-size:10px;color:var(--text3);font-weight:400">${esc(item.category)}</span>`:''}${isBestDeal&&!bulkMode?' <span class="best-deal-badge">⭐ best deal</span>':''}</div>
           <div class="item-meta">${esc(domain(item.url))}${item.store?' · '+esc(item.store):''}${item.notes?' · '+esc(item.notes):''}</div>
-          <div class="item-stxt ${sCls}"><abbr title="${lcFull}">${sTxt}</abbr></div>
+          <div class="item-stxt ${sCls}"><abbr title="${lcFull}">${sTxt}</abbr> ${srcTag}</div>
         </div>
       </div>
       <div class="item-prices">
@@ -830,14 +878,35 @@ function renderItem(item, isBestDeal){
 }
 
 function filtered(){
-  let l=items;
-  if(activeFilter!=='all') l=l.filter(i=>status(i)===activeFilter);
+  let l=[...items];
+  const f=tileFilter!=='all'?tileFilter:activeFilter;
+  if(f==='good') l=l.filter(i=>status(i)==='good');
+  else if(f==='close') l=l.filter(i=>status(i)==='close');
+  else if(f==='over') l=l.filter(i=>status(i)==='over');
+  else if(f==='none') l=l.filter(i=>i.lastChecked==null);
+  else if(f==='best'){const bd=bestDeal();if(bd)l=l.filter(i=>i.id===bd.id);}
   if(searchQ) l=l.filter(i=>i.name.toLowerCase().includes(searchQ)||(i.notes||'').toLowerCase().includes(searchQ)||domain(i.url).includes(searchQ));
+  if(sortMode==='phl') l.sort((a,b)=>(b.currentPrice||0)-(a.currentPrice||0));
+  else if(sortMode==='plh') l.sort((a,b)=>(a.currentPrice||999999)-(b.currentPrice||999999));
+  else if(sortMode==='az') l.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(sortMode==='disc') l.sort((a,b)=>{
+    const pctA=a.targetPrice?((a.targetPrice-(a.currentPrice||a.targetPrice))/a.targetPrice):0;
+    const pctB=b.targetPrice?((b.targetPrice-(b.currentPrice||b.targetPrice))/b.targetPrice):0;
+    return pctB-pctA;
+  });
   return l;
+}
+function bestDeal(){
+  const c=items.filter(i=>i.currentPrice!=null&&i.targetPrice&&i.targetPrice>0);
+  if(!c.length) return null;
+  return c.reduce((a,b)=>(a.currentPrice/a.targetPrice)<=(b.currentPrice/b.targetPrice)?a:b);
 }
 function render(){
   const l=filtered();
-  document.getElementById('count-lbl').textContent=`Watchlist · ${l.length} item${l.length!==1?'s':''}`;
+  const fLabel={good:'at target',close:'within 10%',over:'above target',none:'unchecked',best:'best deal'};
+  const activF=tileFilter!=='all'?tileFilter:activeFilter;
+  const tag=activF!=='all'?`<span class="active-filter-tag">${fLabel[activF]||''}</span>`:'';
+  document.getElementById('count-lbl').innerHTML=`Watchlist · ${l.length} item${l.length!==1?'s':''}${tag}`;
   // Find best deal: item with lowest currentPrice/targetPrice ratio (must have both)
   let bestDealId=null;
   const candidates=items.filter(i=>i.currentPrice!=null&&i.targetPrice&&i.targetPrice>0);
@@ -881,6 +950,52 @@ function updateDash(bestDealId){
     bdEl.textContent='–';
     document.getElementById('d-bestdeal-name').textContent='No data yet';
   }
+}
+
+
+// ── PricesAPI integration ──
+async function searchPricesAPI(name){
+  if(!pricesApiKey) return null;
+  try{
+    const res=await fetch(`https://api.pricesapi.io/api/v1/products/search?q=${encodeURIComponent(name)}&limit=5`,{
+      headers:{'x-api-key':pricesApiKey}
+    });
+    if(!res.ok) return null;
+    const data=await res.json();
+    return data?.data?.results?.[0]||null;
+  }catch(e){return null;}
+}
+async function getPricesAPIOffers(productId){
+  if(!pricesApiKey||!productId) return null;
+  try{
+    const res=await fetch(`https://api.pricesapi.io/api/v1/products/${productId}/offers?country=au`,{
+      headers:{'x-api-key':pricesApiKey}
+    });
+    if(!res.ok) return null;
+    const data=await res.json();
+    if(!data?.data?.offers?.length) return null;
+    const offers=data.data.offers;
+    // Sort by price ascending, pick cheapest
+    offers.sort((a,b)=>a.price-b.price);
+    const best=offers[0];
+    const competitors=offers.slice(1,5).map(o=>({store:o.seller,price:o.price,url:o.url||null}));
+    return {
+      price:best.price,
+      currency:best.currency||'AUD',
+      store:best.seller,
+      url:best.url||null,
+      competitors,
+      allOffers:offers,
+      source:'pricesapi'
+    };
+  }catch(e){return null;}
+}
+function updatePricesApiPill(){
+  const pill=document.getElementById('prices-pill');
+  if(!pill) return;
+  pill.textContent=pricesApiKey?'Key saved ✓':'Not set';
+  pill.className='status-pill '+(pricesApiKey?'ok':'missing');
+  if(pricesApiKey) document.getElementById('set-prices-key').value='••••••••';
 }
 
 // ── Find AU retailers ──
@@ -1037,11 +1152,30 @@ Return ONLY valid JSON:
 window.checkOne=async function(id){
   const item=items.find(i=>i.id===id);
   if(!item||checking.has(id)) return;
-  if(!orKey){showToast('Add your OpenRouter API key in ⚙ Settings first');return;}
+  if(!orKey&&!pricesApiKey){showToast('Add a PricesAPI or OpenRouter key in ⚙ Settings first');return;}
   checking.add(id);cstatus[id]='searching...';render();
   try{
     const prev=item.currentPrice;
-    const res=await callOR(item);
+    // Try PricesAPI first if key set
+    let res=null;
+    if(pricesApiKey){
+      cstatus[id]='checking prices...';render();
+      // Search for product ID if not stored
+      if(!item.pricesApiId){
+        const found=await searchPricesAPI(item.name+(item.notes?' '+item.notes:''));
+        if(found) item.pricesApiId=found.id;
+      }
+      if(item.pricesApiId){
+        const pRes=await getPricesAPIOffers(item.pricesApiId);
+        if(pRes) res={...pRes,verdict:null,imageUrl:item.imageUrl};
+      }
+    }
+    // Fall back to AI if PricesAPI failed or not configured
+    if(!res&&orKey){
+      cstatus[id]='checking with AI...';render();
+      res=await callOR(item);
+    }
+    if(!res) throw new Error('No price source available');
     if(res.price!=null){
       const currency=(res.currency||'AUD').toUpperCase();
       const converted=await toAUD(parseFloat(res.price), currency);
@@ -1054,7 +1188,8 @@ window.checkOne=async function(id){
         price:converted.aud,
         originalPrice:converted.original,
         checkedAt:Date.now(),
-        store:res.store||null
+        store:res.store||null,
+        source:res.source||'ai'
       });
       if(histories[id].length>100)histories[id]=histories[id].slice(-100);
     }
@@ -1201,6 +1336,10 @@ document.getElementById('btn-settings').onclick=()=>{
 };
 document.getElementById('modal-close').onclick=()=>document.getElementById('settings-modal').classList.remove('open');
 document.getElementById('settings-modal').onclick=function(e){if(e.target===this)this.classList.remove('open');};
+document.getElementById('btn-save-priceskey').onclick=async function(){
+  const k=document.getElementById('set-prices-key').value.trim();
+  if(k&&k!=='••••••••'){pricesApiKey=k;scheduleSave();updatePricesApiPill();showToast('PricesAPI key saved');}
+};
 document.getElementById('btn-save-orkey').onclick=async function(){
   const val=document.getElementById('set-or-key').value.trim();
   if(!val||val==='••••••••'){showToast('Please enter your API key');return;}
@@ -1343,6 +1482,29 @@ document.getElementById('btn-expand-all').onclick=function(){
   render();
 };
 
+function tileClick(f,tileId){
+  tileFilter=f;
+  document.querySelectorAll('.dc').forEach(t=>{
+    t.classList.remove('tile-active','tile-amber-active','tile-red-active','tile-gold-active');
+  });
+  const tile=document.getElementById(tileId);
+  if(tileId==='tile-good') tile.classList.add('tile-active');
+  else if(tileId==='tile-close') tile.classList.add('tile-amber-active');
+  else if(tileId==='tile-over') tile.classList.add('tile-red-active');
+  else if(tileId==='tile-best') tile.classList.add('tile-gold-active');
+  else tile.classList.add('tile-active');
+  // sync filter buttons
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
+  if(f==='all') document.getElementById('fb-all')?.classList.add('active');
+  activeFilter=f;
+  render();
+}
+function setSort(mode,btnId){
+  sortMode=mode;
+  document.querySelectorAll('.sb').forEach(b=>b.classList.remove('active'));
+  document.getElementById(btnId).classList.add('active');
+  render();
+}
 function checkNotifPerm(){
   document.getElementById('notif-bar').style.display=typeof Notification!=='undefined'&&Notification.permission==='default'?'flex':'none';
 }
