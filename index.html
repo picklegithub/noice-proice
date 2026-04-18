@@ -1039,7 +1039,7 @@ function updateUsageDisplay(){
 async function searchPricesAPI(name){
   if(!pricesApiKey) return null;
   try{
-    const res=await fetch(`https://api.pricesapi.io/api/v1/products/search?q=${encodeURIComponent(name)}&limit=3`,{
+    const res=await fetch(`https://api.pricesapi.io/v1/products/search?q=${encodeURIComponent(name)}&limit=3`,{
       headers:{'x-api-key':pricesApiKey}
     });
     if(!res.ok) return null;
@@ -1050,7 +1050,7 @@ async function searchPricesAPI(name){
 async function getPricesAPIOffers(productId){
   if(!pricesApiKey||!productId) return null;
   try{
-    const res=await fetch(`https://api.pricesapi.io/api/v1/products/${productId}/offers?country=au`,{
+    const res=await fetch(`https://api.pricesapi.io/v1/products/${productId}/offers?country=au`,{
       headers:{'x-api-key':pricesApiKey}
     });
     if(!res.ok) return null;
