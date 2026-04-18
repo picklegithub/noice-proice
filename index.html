@@ -1117,8 +1117,7 @@ async function getPricesAPIOffers(productId){
     // Override offers array in data
     if(data?.data) data.data.offers=offers;
     console.log('[PricesAPI offers] Final:',offers.length,'offers');
-    if(!data?.data?.offers?.length) return null;
-    const offers=data.data.offers;
+    if(!offers.length) return null;
     // Sort by price ascending, pick cheapest
     offers.sort((a,b)=>a.price-b.price);
     const best=offers[0];
