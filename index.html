@@ -1065,14 +1065,10 @@ const PROXY_URL='https://lszmlbspryvsiwbbfvdq.supabase.co/functions/v1/prices-pr
 async function pricesProxy(action, params){
   if(!pricesApiKey) return null;
   try{
-    // Get current Supabase session token for JWT auth on the edge function
-    const {data:{session}}=await sb.auth.getSession();
-    const jwt=session?.access_token||'';
     const res=await fetch(PROXY_URL,{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
-        'Authorization':'Bearer '+jwt,
         'x-prices-key':pricesApiKey
       },
       body:JSON.stringify({action,...params})
