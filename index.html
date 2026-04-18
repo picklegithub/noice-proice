@@ -220,6 +220,12 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .src-badge.ai{background:var(--surface2);color:var(--text3)}
 
 abbr{text-decoration:underline dotted;text-underline-offset:2px;cursor:help}
+/* source badges in history */
+.src-col{width:54px;text-align:right!important}
+.hsrc{display:inline-block;font-size:9px;padding:1px 5px;border-radius:99px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+.hsrc.live{background:rgba(129,140,248,.15);color:var(--accent)}
+.hsrc.ai{background:rgba(251,191,36,.12);color:var(--amber)}
+.hsrc.unknown{background:var(--surface2);color:var(--text3)}
 /* history management */
 .hist-manage-mode .hist-cb-col{display:table-cell!important}
 .hist-cb-col{display:none;width:20px;padding-right:4px!important}
@@ -294,7 +300,10 @@ const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
       </div>
     </div>
     <div class="msec">
-      <div class="msec-title">PricesAPI key <span style="font-size:10px;background:var(--green-bg);color:var(--green);border-radius:99px;padding:1px 7px;font-weight:600">free tier</span></div>
+      <div class="msec-title" style="display:flex;align-items:center;justify-content:space-between">
+        <span>PricesAPI key <span style="font-size:10px;background:var(--green-bg);color:var(--green);border-radius:99px;padding:1px 7px;font-weight:600">free tier</span></span>
+        <span id="api-usage-display" style="font-size:11px;font-weight:400"></span>
+      </div>
       <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:8px">
         Real-time AU price data — no AI needed. Free 1,000 calls/month.<br>
         Get your key at <a href="https://pricesapi.io/signup" target="_blank" style="color:var(--text2)">pricesapi.io/signup</a> — used first, AI is fallback only.
@@ -784,11 +793,12 @@ function renderItem(item, isBestDeal){
       <td>${new Date(p.checkedAt).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}</td>
       <td>${fmtA(p.price)}${p.originalPrice?` <span style="color:var(--text3);font-size:10px">${fmtOrig(p.originalPrice)}</span>`:''}</td>
       <td style="color:var(--text3)">${p.store?esc(p.store.slice(0,14)):''}</td>
+      <td class="src-col"><span class="hsrc ${p.source==='pricesapi'?'live':p.source==='ai'?'ai':'unknown'}">${p.source==='pricesapi'?'LIVE':p.source==='ai'?'AI':'?'}</span></td>
     </tr>`;
   }).join('');
   const pClass=isC||isErr?'none':st;
   const lastSrc=(histories[item.id]||[]).slice(-1)[0]?.source;
-  const srcTag=!isC&&!isErr&&lastSrc?`<span class="src-badge ${lastSrc==='pricesapi'?'prices-api':'ai'}">${lastSrc==='pricesapi'?'live data':'AI'}</span>`:'';
+  const srcTag=!isC&&!isErr&&lastSrc?`<span class="src-badge ${lastSrc==='pricesapi'?'prices-api':'ai'}" title="${lastSrc==='pricesapi'?'Price from PricesAPI real-time data':'Price from AI — may be less accurate'}">${lastSrc==='pricesapi'?'⚡ live':'🤖 AI'}</span>`:'';
   const sTxt=isC?(cstatus[item.id]||'searching...'):isErr?'Check failed — click Refresh to retry':`Checked ${relTime(item.lastChecked)}`;
   const sCls=isC?'checking':isErr?'error':'ok';
   const phPrices=ph.map(p=>p.price);
@@ -860,7 +870,7 @@ function renderItem(item, isBestDeal){
             </div>
             <div style="max-height:${inManage?'260px':'180px'};overflow-y:auto">
               <table class="hist-table${inManage?' hist-manage-mode':''}">
-                <thead><tr><th class="hist-cb-col"></th><th>Date</th><th>Time</th><th>Price</th><th>Store</th></tr></thead>
+                <thead><tr><th class="hist-cb-col"></th><th>Date</th><th>Time</th><th>Price</th><th>Store</th><th class="src-col">Source</th></tr></thead>
                 <tbody>${histRows}</tbody>
               </table>
             </div>
@@ -990,6 +1000,42 @@ function updateDash(bestDealId){
 
 
 // ── PricesAPI integration ──
+// AI fallback confirmation — shows a non-blocking toast with accept/decline
+function confirmAIFallback(productName, reason){
+  return new Promise(resolve=>{
+    // Remove any existing confirm toast
+    const old=document.getElementById('ai-confirm-toast');
+    if(old) old.remove();
+    const t=document.createElement('div');
+    t.id='ai-confirm-toast';
+    t.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--surface3);border:1px solid var(--amber);border-radius:var(--r-lg);padding:14px 16px;z-index:300;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.6)';
+    t.innerHTML=`
+      <div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:4px">⚠ AI fallback</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">
+        ${reason} for <strong>${productName.slice(0,30)}</strong>.<br>
+        Use AI to check price? <span style="color:var(--text3);font-size:11px">(~$0.001 per check)</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="ai-yes" class="btn sm pri" style="font-size:12px;padding:6px 14px">Use AI →</button>
+        <button id="ai-no" class="btn sm" style="font-size:12px;padding:6px 14px">Skip</button>
+      </div>`;
+    document.body.appendChild(t);
+    const cleanup=(val)=>{t.remove();resolve(val);};
+    document.getElementById('ai-yes').onclick=()=>cleanup(true);
+    document.getElementById('ai-no').onclick=()=>cleanup(false);
+    // Auto-dismiss after 15s = skip
+    setTimeout(()=>{if(document.getElementById('ai-confirm-toast'))cleanup(false);},15000);
+  });
+}
+// API usage tracking (session only, lightweight)
+const apiUsage={pricesapi:0,ai:0,session_start:Date.now()};
+function trackUsage(source){ if(source==='pricesapi') apiUsage.pricesapi++; else apiUsage.ai++; updateUsageDisplay(); }
+function updateUsageDisplay(){
+  const el=document.getElementById('api-usage-display');
+  if(!el) return;
+  const mins=Math.round((Date.now()-apiUsage.session_start)/60000);
+  el.innerHTML=`<span style="color:var(--accent)">LIVE: ${apiUsage.pricesapi}</span> · <span style="color:var(--amber)">AI: ${apiUsage.ai}</span> <span style="color:var(--text3);font-size:10px">this session (${mins}m)</span>`;
+}
 async function searchPricesAPI(name){
   if(!pricesApiKey) return null;
   try{
@@ -1038,7 +1084,7 @@ function updatePricesApiPill(){
 async function findRetailersForItem(id){
   const item=items.find(i=>i.id===id);
   if(!item||findingRetailers.has(id)) return;
-  if(!orKey){showToast('Add your OpenRouter API key in ⚙ Settings first');return;}
+  if(!orKey&&!pricesApiKey){showToast('Add a PricesAPI or OpenRouter key in ⚙ Settings first');return;}
   findingRetailers.add(id);render();
   try{
     const retailerList=retailers.map(r=>`${r.name} (${r.url})`).join(', ');
@@ -1207,13 +1253,29 @@ window.checkOne=async function(id){
       }
       if(item.pricesApiId){
         const pRes=await getPricesAPIOffers(item.pricesApiId);
-        if(pRes) res={...pRes,verdict:null,imageUrl:item.imageUrl};
+        if(pRes){ res={...pRes,verdict:null,imageUrl:item.imageUrl}; trackUsage('pricesapi'); }
       }
     }
-    // Fall back to AI if PricesAPI failed or not configured
-    if(!res&&orKey){
+    // AI fallback — only with user confirmation
+    if(!res){
+      if(!orKey){
+        // No AI key either — give clear guidance
+        cstatus[id]='error';
+        checking.delete(id);render();
+        showToast(pricesApiKey?`PricesAPI couldn't find "${item.name.slice(0,25)}" — add model number in Notes`:'Add PricesAPI or OpenRouter key in ⚙ Settings');
+        return;
+      }
+      // PricesAPI failed (or not set) — ask user before burning AI tokens
+      const reason=pricesApiKey?'PricesAPI couldn\'t find this product':'PricesAPI key not set';
+      const useAI=await confirmAIFallback(item.name, reason);
+      if(!useAI){
+        cstatus[id]='error';
+        checking.delete(id);render();
+        return;
+      }
       cstatus[id]='checking with AI...';render();
       res=await callOR(item);
+      if(res) trackUsage('ai');
     }
     if(!res) throw new Error('No price source available');
     if(res.price!=null){
@@ -1255,7 +1317,7 @@ window.checkOne=async function(id){
 
 async function checkAll(){
   if(!items.length)return;
-  if(!orKey){showToast('Add your OpenRouter API key in ⚙ Settings first');return;}
+  if(!orKey&&!pricesApiKey){showToast('Add a PricesAPI or OpenRouter key in ⚙ Settings first');return;}
   const btn=document.getElementById('btn-check-all');
   document.getElementById('prog-wrap').style.display='block';
   btn.disabled=true;btn.textContent='Checking...';
@@ -1433,7 +1495,7 @@ document.getElementById('btn-manual').onclick=()=>{
 document.getElementById('btn-lookup').onclick=async function(){
   const url=document.getElementById('inp-url').value.trim();
   if(!url||!url.startsWith('http')){showToast('Please enter a valid URL starting with http');return;}
-  if(!orKey){showToast('Add your OpenRouter API key in ⚙ Settings first');return;}
+  if(!orKey&&!pricesApiKey){showToast('Add a PricesAPI or OpenRouter key in ⚙ Settings first');return;}
   const btn=document.getElementById('btn-lookup');
   btn.disabled=true;btn.textContent='Looking up...';
   const loadingEl=document.createElement('div');
