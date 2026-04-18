@@ -220,6 +220,18 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .src-badge.ai{background:var(--surface2);color:var(--text3)}
 
 abbr{text-decoration:underline dotted;text-underline-offset:2px;cursor:help}
+/* check mode toggle */
+.mode-row{display:flex;align-items:center;gap:6px;padding:10px 18px;border-top:1px solid var(--border);background:var(--surface);margin:0 -18px;flex-wrap:wrap}
+.mode-lbl{font-size:11px;color:var(--text3);font-weight:500;white-space:nowrap}
+.mode-btn{border:1px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);cursor:pointer;padding:3px 11px;font-size:11px;font-weight:500;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.mode-btn:hover{color:var(--text);border-color:var(--border2)}
+.mode-btn.active-auto{background:var(--surface2);border-color:var(--border2);color:var(--text)}
+.mode-btn.active-ai{background:var(--amber-bg);border-color:rgba(251,191,36,.35);color:var(--amber)}
+.mode-btn.active-live{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent)}
+.mode-tag{font-size:9px;padding:1px 6px;border-radius:99px;font-weight:700;white-space:nowrap;margin-left:2px}
+.mode-tag.auto{background:var(--surface2);color:var(--text3)}
+.mode-tag.ai{background:var(--amber-bg);color:var(--amber)}
+.mode-tag.live{background:var(--accent-bg);color:var(--accent)}
 /* source badges in history */
 .src-col{width:54px;text-align:right!important}
 .hsrc{display:inline-block;font-size:9px;padding:1px 5px;border-radius:99px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
@@ -799,6 +811,7 @@ function renderItem(item, isBestDeal){
   const pClass=isC||isErr?'none':st;
   const lastSrc=(histories[item.id]||[]).slice(-1)[0]?.source;
   const srcTag=!isC&&!isErr&&lastSrc?`<span class="src-badge ${lastSrc==='pricesapi'?'prices-api':'ai'}" title="${lastSrc==='pricesapi'?'Price from PricesAPI real-time data':'Price from AI — may be less accurate'}">${lastSrc==='pricesapi'?'⚡ live':'🤖 AI'}</span>`:'';
+  const modeTag=item.checkMode&&item.checkMode!=='auto'?`<span class="mode-tag ${item.checkMode}">${item.checkMode==='ai'?'🤖 AI only':'⚡ live only'}</span>`:'';
   const sTxt=isC?(cstatus[item.id]||'searching...'):isErr?'Check failed — click Refresh to retry':`Checked ${relTime(item.lastChecked)}`;
   const sCls=isC?'checking':isErr?'error':'ok';
   const phPrices=ph.map(p=>p.price);
@@ -838,7 +851,7 @@ function renderItem(item, isBestDeal){
         <div class="item-info">
           <div class="item-name">${esc(item.name)}${item.category?` <span style="font-size:10px;color:var(--text3);font-weight:400">${esc(item.category)}</span>`:''}${isBestDeal&&!bulkMode?' <span class="best-deal-badge">⭐ best deal</span>':''}</div>
           <div class="item-meta">${esc(domain(item.url))}${item.store?' · '+esc(item.store):''}${item.notes?' · '+esc(item.notes):''}</div>
-          <div class="item-stxt ${sCls}"><abbr title="${lcFull}">${sTxt}</abbr> ${srcTag}</div>
+          <div class="item-stxt ${sCls}"><abbr title="${lcFull}">${sTxt}</abbr> ${srcTag}${modeTag}</div>
         </div>
       </div>
       <div class="item-prices">
@@ -893,6 +906,17 @@ function renderItem(item, isBestDeal){
           <div class="ps-row"><span class="ps-l">Last checked</span><span class="ps-v" style="font-size:10px;color:var(--text2)">${item.lastChecked?new Date(item.lastChecked).toLocaleString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'–'}</span></div>
           <div class="ps-row"><span class="ps-l">Added</span><span class="ps-v" style="font-size:10px;color:var(--text2)">${item.addedAt?new Date(item.addedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'}):'–'}</span></div>
         </div>
+      </div>
+      <div class="mode-row" onclick="event.stopPropagation()">
+        <span class="mode-lbl">Check via:</span>
+        <button class="mode-btn ${!item.checkMode||item.checkMode==='auto'?'active-auto':''}" onclick="setCheckMode('${item.id}','auto')">🔄 Auto</button>
+        <button class="mode-btn ${item.checkMode==='live'?'active-live':''}" onclick="setCheckMode('${item.id}','live')">⚡ Live prices</button>
+        <button class="mode-btn ${item.checkMode==='ai'?'active-ai':''}" onclick="setCheckMode('${item.id}','ai')">🤖 AI only</button>
+        <span style="font-size:11px;color:var(--text3);margin-left:4px">${
+          !item.checkMode||item.checkMode==='auto'?'tries Live first, AI fallback':
+          item.checkMode==='live'?'PricesAPI only — fails if not listed':
+          'Gemini AI — works on any URL'
+        }</span>
       </div>
       <div class="det-actions">
         <button class="btn sm" onclick="event.stopPropagation();checkOne('${item.id}')">↻ Refresh</button>
@@ -1036,20 +1060,42 @@ function updateUsageDisplay(){
   const mins=Math.round((Date.now()-apiUsage.session_start)/60000);
   el.innerHTML=`<span style="color:var(--accent)">LIVE: ${apiUsage.pricesapi}</span> · <span style="color:var(--amber)">AI: ${apiUsage.ai}</span> <span style="color:var(--text3);font-size:10px">this session (${mins}m)</span>`;
 }
+// ── PricesAPI proxy via Supabase Edge Function (fixes CORS) ──
+const PROXY_URL='https://lszmlbspryvsiwbbfvdq.supabase.co/functions/v1/prices-proxy';
+async function pricesProxy(action, params){
+  if(!pricesApiKey) return null;
+  try{
+    // Get current Supabase session token for JWT auth on the edge function
+    const {data:{session}}=await sb.auth.getSession();
+    const jwt=session?.access_token||'';
+    const res=await fetch(PROXY_URL,{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+jwt,
+        'x-prices-key':pricesApiKey
+      },
+      body:JSON.stringify({action,...params})
+    });
+    const data=await res.json();
+    if(!res.ok){
+      console.error('[prices-proxy]',res.status,data);
+      if(res.status!==404) showToast('PricesAPI: '+(data?.error||'error '+res.status));
+      return null;
+    }
+    return data;
+  }catch(e){
+    console.error('[prices-proxy exception]',e.message);
+    return null;
+  }
+}
 async function searchPricesAPI(name){
   if(!pricesApiKey) return null;
   try{
-    // Pass key both as query param and header per docs
-    const url=`https://api.pricesapi.io/api/v1/products/search?q=${encodeURIComponent(name)}&limit=3&api_key=${encodeURIComponent(pricesApiKey)}`;
-    const res=await fetch(url,{headers:{'x-api-key':pricesApiKey}});
-    const data=await res.json();
-    if(!res.ok){
-      console.error('[PricesAPI search]',res.status,data);
-      showToast(`PricesAPI error ${res.status}: ${data?.error?.code||data?.error?.message||'unknown'}`);
-      return null;
-    }
-    console.log('[PricesAPI search] OK',data?.data?.results?.length,'results for',name);
-    return data?.data?.results?.[0]||null;
+    const res=await pricesProxy('search',{query:name});
+    if(!res) return null;
+    console.log('[PricesAPI search] OK',res?.data?.results?.length,'results for',name);
+    return res?.data?.results?.[0]||null;
   }catch(e){
     console.error('[PricesAPI search exception]',e.message);
     return null;
@@ -1058,13 +1104,8 @@ async function searchPricesAPI(name){
 async function getPricesAPIOffers(productId){
   if(!pricesApiKey||!productId) return null;
   try{
-    const url=`https://api.pricesapi.io/api/v1/products/${productId}/offers?country=au&api_key=${encodeURIComponent(pricesApiKey)}`;
-    const res=await fetch(url,{headers:{'x-api-key':pricesApiKey}});
-    const data=await res.json();
-    if(!res.ok){
-      console.error('[PricesAPI offers]',res.status,data);
-      return null;
-    }
+    const data=await pricesProxy('offers',{productId});
+    if(!data) return null;
     console.log('[PricesAPI offers] OK',data?.data?.offerCount,'offers');
     if(!data?.data?.offers?.length) return null;
     const offers=data.data.offers;
@@ -1251,42 +1292,63 @@ window.checkOne=async function(id){
   checking.add(id);cstatus[id]='searching...';render();
   try{
     const prev=item.currentPrice;
-    // Try PricesAPI first if key set
+    const mode=item.checkMode||'auto';
     let res=null;
-    if(pricesApiKey){
-      cstatus[id]='checking prices...';render();
-      // Search for product ID if not stored
+
+    // ── Live prices (PricesAPI via proxy) ──
+    const tryLive=async()=>{
+      if(!pricesApiKey) return null;
+      cstatus[id]='checking live prices...';render();
       if(!item.pricesApiId){
-        // Build specific search: name + model number. Notes often has the exact variant.
         const searchQ=[item.name,item.notes].filter(Boolean).join(' ').trim();
         const found=await searchPricesAPI(searchQ);
         if(found) item.pricesApiId=found.id;
       }
-      if(item.pricesApiId){
-        const pRes=await getPricesAPIOffers(item.pricesApiId);
-        if(pRes){ res={...pRes,verdict:null,imageUrl:item.imageUrl}; trackUsage('pricesapi'); }
-      }
-    }
-    // AI fallback — only with user confirmation
-    if(!res){
-      if(!orKey){
-        // No AI key either — give clear guidance
-        cstatus[id]='error';
-        checking.delete(id);render();
-        showToast(pricesApiKey?`PricesAPI couldn't find "${item.name.slice(0,25)}" — add model number in Notes`:'Add PricesAPI or OpenRouter key in ⚙ Settings');
-        return;
-      }
-      // PricesAPI failed (or not set) — ask user before burning AI tokens
-      const reason=pricesApiKey?'PricesAPI couldn\'t find this product':'PricesAPI key not set';
-      const useAI=await confirmAIFallback(item.name, reason);
-      if(!useAI){
-        cstatus[id]='error';
-        checking.delete(id);render();
-        return;
-      }
+      if(!item.pricesApiId) return null;
+      const pRes=await getPricesAPIOffers(item.pricesApiId);
+      if(pRes){ trackUsage('pricesapi'); return {...pRes,verdict:null,imageUrl:item.imageUrl}; }
+      return null;
+    };
+
+    // ── AI (Gemini via OpenRouter) ──
+    const tryAI=async()=>{
+      if(!orKey) return null;
       cstatus[id]='checking with AI...';render();
-      res=await callOR(item);
-      if(res) trackUsage('ai');
+      const r=await callOR(item);
+      if(r) trackUsage('ai');
+      return r;
+    };
+
+    if(mode==='live'){
+      // PricesAPI only — no AI fallback
+      res=await tryLive();
+      if(!res){
+        cstatus[id]='error';
+        checking.delete(id);render();
+        showToast(pricesApiKey?`Not found in PricesAPI — try switching to Auto or AI mode`:'Add your PricesAPI key in ⚙ Settings');
+        return;
+      }
+    } else if(mode==='ai'){
+      // AI only — skip PricesAPI entirely
+      if(!orKey){
+        cstatus[id]='error';
+        checking.delete(id);render();
+        showToast('Add your OpenRouter API key in ⚙ Settings');
+        return;
+      }
+      res=await tryAI();
+    } else {
+      // Auto — try Live first, silently fall back to AI
+      if(pricesApiKey) res=await tryLive();
+      if(!res){
+        if(!orKey){
+          cstatus[id]='error';
+          checking.delete(id);render();
+          showToast(pricesApiKey?`Not in PricesAPI — add OpenRouter key for AI fallback, or set mode to AI only`:'Add a PricesAPI or OpenRouter key in ⚙ Settings');
+          return;
+        }
+        res=await tryAI();
+      }
     }
     if(!res) throw new Error('No price source available');
     if(res.price!=null){
@@ -1623,6 +1685,15 @@ function checkNotifPerm(){
 }
 
 // ── Bulk select ──
+function setCheckMode(id, mode){
+  const item=items.find(i=>i.id===id);
+  if(!item) return;
+  item.checkMode=mode;
+  scheduleSave();
+  const labels={auto:'Auto (Live → AI fallback)',live:'⚡ Live prices only',ai:'🤖 AI only'};
+  showToast(`${item.name.slice(0,25)}: ${labels[mode]}`);
+  render();
+}
 function wrongProduct(id){
   const item=items.find(i=>i.id===id);
   if(!item) return;
