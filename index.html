@@ -1039,22 +1039,33 @@ function updateUsageDisplay(){
 async function searchPricesAPI(name){
   if(!pricesApiKey) return null;
   try{
-    const res=await fetch(`https://api.pricesapi.io/v1/products/search?q=${encodeURIComponent(name)}&limit=3`,{
-      headers:{'x-api-key':pricesApiKey}
-    });
-    if(!res.ok) return null;
+    // Pass key both as query param and header per docs
+    const url=`https://api.pricesapi.io/api/v1/products/search?q=${encodeURIComponent(name)}&limit=3&api_key=${encodeURIComponent(pricesApiKey)}`;
+    const res=await fetch(url,{headers:{'x-api-key':pricesApiKey}});
     const data=await res.json();
+    if(!res.ok){
+      console.error('[PricesAPI search]',res.status,data);
+      showToast(`PricesAPI error ${res.status}: ${data?.error?.code||data?.error?.message||'unknown'}`);
+      return null;
+    }
+    console.log('[PricesAPI search] OK',data?.data?.results?.length,'results for',name);
     return data?.data?.results?.[0]||null;
-  }catch(e){return null;}
+  }catch(e){
+    console.error('[PricesAPI search exception]',e.message);
+    return null;
+  }
 }
 async function getPricesAPIOffers(productId){
   if(!pricesApiKey||!productId) return null;
   try{
-    const res=await fetch(`https://api.pricesapi.io/v1/products/${productId}/offers?country=au`,{
-      headers:{'x-api-key':pricesApiKey}
-    });
-    if(!res.ok) return null;
+    const url=`https://api.pricesapi.io/api/v1/products/${productId}/offers?country=au&api_key=${encodeURIComponent(pricesApiKey)}`;
+    const res=await fetch(url,{headers:{'x-api-key':pricesApiKey}});
     const data=await res.json();
+    if(!res.ok){
+      console.error('[PricesAPI offers]',res.status,data);
+      return null;
+    }
+    console.log('[PricesAPI offers] OK',data?.data?.offerCount,'offers');
     if(!data?.data?.offers?.length) return null;
     const offers=data.data.offers;
     // Sort by price ascending, pick cheapest
