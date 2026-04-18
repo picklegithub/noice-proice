@@ -1090,8 +1090,11 @@ async function searchPricesAPI(name){
   try{
     const res=await pricesProxy('search',{query:name});
     if(!res) return null;
-    console.log('[PricesAPI search] OK',res?.data?.results?.length,'results for',name);
-    return res?.data?.results?.[0]||null;
+    const results=res?.data?.results||[];
+    console.log('[PricesAPI search] OK',results.length,'results for',name);
+    results.forEach((r,i)=>console.log(`  [${i}] id=${r.id} title="${r.title}" offers=${r.offerCount}`));
+    // Return all results so checkOne can try each one
+    return results;
   }catch(e){
     console.error('[PricesAPI search exception]',e.message);
     return null;
@@ -1100,9 +1103,20 @@ async function searchPricesAPI(name){
 async function getPricesAPIOffers(productId){
   if(!pricesApiKey||!productId) return null;
   try{
-    const data=await pricesProxy('offers',{productId});
+    // Try AU first, then global if 0 AU offers
+    let data=await pricesProxy('offers',{productId,country:'au'});
     if(!data) return null;
-    console.log('[PricesAPI offers] OK',data?.data?.offerCount,'offers');
+    let offers=data?.data?.offers||[];
+    console.log('[PricesAPI offers] AU:',offers.length,'offers for id',productId);
+    if(offers.length===0){
+      // Try without country filter
+      data=await pricesProxy('offers',{productId,country:null});
+      offers=data?.data?.offers||[];
+      console.log('[PricesAPI offers] Global:',offers.length,'offers');
+    }
+    // Override offers array in data
+    if(data?.data) data.data.offers=offers;
+    console.log('[PricesAPI offers] Final:',offers.length,'offers');
     if(!data?.data?.offers?.length) return null;
     const offers=data.data.offers;
     // Sort by price ascending, pick cheapest
@@ -1295,12 +1309,25 @@ window.checkOne=async function(id){
     const tryLive=async()=>{
       if(!pricesApiKey) return null;
       cstatus[id]='checking live prices...';render();
+      // If no stored ID, search and try each result until one has offers
       if(!item.pricesApiId){
         const searchQ=[item.name,item.notes].filter(Boolean).join(' ').trim();
-        const found=await searchPricesAPI(searchQ);
-        if(found) item.pricesApiId=found.id;
+        const results=await searchPricesAPI(searchQ);
+        if(results&&results.length){
+          for(const r of results){
+            const pRes=await getPricesAPIOffers(r.id);
+            if(pRes){
+              item.pricesApiId=r.id;
+              console.log('[tryLive] matched:',r.title,'id:',r.id);
+              trackUsage('pricesapi');
+              return {...pRes,verdict:null,imageUrl:item.imageUrl};
+            }
+          }
+          // Store first result ID even if no offers now (may have offers later)
+          item.pricesApiId=results[0].id;
+        }
+        return null;
       }
-      if(!item.pricesApiId) return null;
       const pRes=await getPricesAPIOffers(item.pricesApiId);
       if(pRes){ trackUsage('pricesapi'); return {...pRes,verdict:null,imageUrl:item.imageUrl}; }
       return null;
