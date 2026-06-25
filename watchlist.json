@@ -1,41 +1,139 @@
 [
   {
-    "id": "shelly-plus-1pm",
-    "name": "Shelly Plus 1PM",
-    "url": "https://www.ozsmartthings.com.au/products/shelly-plus-1pm",
-    "targetPrice": 20.00,
-    "notes": "Gen2 smart relay",
+    "id": "mo3lcy0w23m",
+    "name": "Logitech MX Master 4 Wireless Mouse (Graphite)",
+    "url": "https://www.jbhifi.com.au/products/logitech-mx-master-4-mouse-graphite",
+    "targetPrice": 150,
+    "notes": "910-007565",
     "shopify": true
   },
   {
-    "id": "shelly-plus-2pm",
-    "name": "Shelly Plus 2PM",
-    "url": "https://www.ozsmartthings.com.au/products/shelly-plus-2pm",
-    "targetPrice": 30.00,
-    "notes": "2-channel relay with power monitoring",
+    "id": "mn2kh6hc3lw",
+    "name": "Shelly PRO 3EM - 3 Phase Energy Meter",
+    "url": "https://www.smarthome.com.au/product/shelly-pro-3em/",
+    "targetPrice": 200,
+    "notes": "SHELLY-PRO-3EM-400"
+  },
+  {
+    "id": "mn18vb21za8",
+    "name": "New Era Dragons Vegas 9Forty Trucker Cap",
+    "url": "https://shop.dragons.com.au/collections/headwear-1/products/new-era-9forty-vegas-trucker-cap",
+    "targetPrice": 50,
+    "notes": "Vegas Trucker Cap",
     "shopify": true
   },
   {
-    "id": "trmnl",
-    "name": "TRMNL E-ink Display",
-    "url": "https://usetrmnl.com/products/trmnl",
-    "targetPrice": 100.00,
-    "notes": "7.5\" e-ink dashboard display",
+    "id": "mn18gl3vkxb",
+    "name": "Kegland 1L Power Sprayer (Rechargeable USB Type-C)",
+    "url": "https://kegland.com.au/products/1l-power-sprayer-usb-type-c?variant=45993689284864",
+    "targetPrice": 15,
+    "notes": "KL40860",
     "shopify": true
   },
   {
-    "id": "pimoroni-pico-display",
-    "name": "Pimoroni Pico Display Pack 2.0",
-    "url": "https://shop.pimoroni.com/products/pico-display-pack-2-0",
-    "targetPrice": 25.00,
-    "notes": "2.0\" IPS LCD for Raspberry Pi Pico",
+    "id": "mn18ej6n8xg",
+    "name": "Ego QV Ceramides Moisturising Lotion 1.25L Exclusive Size",
+    "url": "https://www.chemistwarehouse.com.au/buy/124019/ego-qv-ceramides-moisturising-lotion-1-25l-exclusive-size",
+    "targetPrice": 25
+  },
+  {
+    "id": "mn18dq9tvkk",
+    "name": "Ego QV Ceramides Cleanser 1.25kg",
+    "url": "https://www.chemistwarehouse.com.au/buy/124017/ego-qv-ceramides-cleanser-1-25kg-exclusive-size",
+    "targetPrice": 25,
+    "notes": "1.25kg Exclusive Size"
+  },
+  {
+    "id": "mn18czi3psn",
+    "name": "Mixa Ceramide Protect Strengthening Cream 400ml",
+    "url": "https://www.chemistwarehouse.com.au/buy/150475/mixa-ceramide-protect-strengthening-cream-400ml",
+    "targetPrice": 10
+  },
+  {
+    "id": "mn18c5l06h1",
+    "name": "Yeti Rambler 14oz Ceramic Lined Mug",
+    "url": "https://au.yeti.com/products/rambler-14-oz-ceramic-lined-mug?variant=42228314570886",
+    "targetPrice": 35,
+    "notes": "14oz only",
     "shopify": true
   },
   {
-    "id": "ha-green",
-    "name": "Home Assistant Green",
-    "url": "https://www.home-assistant.io/green/",
-    "targetPrice": 99.00,
-    "notes": "Official HA hub"
+    "id": "mn18bq8htea",
+    "name": "Nanoleaf LED Light Therapy Face Mask",
+    "url": "https://au-shop.nanoleaf.me/products/face-mask",
+    "targetPrice": 200,
+    "notes": "NLEDK00-1TFM",
+    "shopify": true
+  },
+  {
+    "id": "mn185ij8emj",
+    "name": "Thirdreality Smart Soil Moisture Sensor",
+    "url": "https://thirdreality.com/product/smart-soil-moisture-sensor/",
+    "targetPrice": 20
+  },
+  {
+    "id": "mn184o269an",
+    "name": "Home Assistant ZWA-2 Connect Z-Wave Adapter",
+    "url": "https://www.smarthome.com.au/product/home-assistant-zwa-2-connect-z-wave-usb-antenna/",
+    "targetPrice": 90,
+    "notes": "NC-ZWA-9734"
+  },
+  {
+    "id": "mn1845kbeh0",
+    "name": "Home Assistant ZBT-2 Connect Zigbee / Thread Adapter",
+    "url": "https://www.smarthome.com.au/product/home-assistant-zbt-2-connect-zigbee-thread-adapter/",
+    "targetPrice": 80,
+    "notes": "NC-ZBT-9741"
+  },
+  {
+    "id": "mn183r9tg2f",
+    "name": "TRMNL-X E-ink Display",
+    "url": "https://shop.trmnl.com/collections/devices/products/trmnl-x?variant=51682231943473",
+    "targetPrice": 300,
+    "shopify": true
+  },
+  {
+    "id": "mn17vju8tno",
+    "name": "Everything Presence Pro",
+    "url": "https://shop.everythingsmart.io/products/everything-presence-pro",
+    "targetPrice": 125,
+    "notes": "TriSense - mmWave + PIR Sensor",
+    "shopify": true
+  },
+  {
+    "id": "mn17twkyzit",
+    "name": "Shelly Pro 3EM",
+    "url": "https://www.shelly.com/products/shelly-pro-3em-x1",
+    "targetPrice": 225,
+    "shopify": true
+  },
+  {
+    "id": "mn17sqq9kqx",
+    "name": "Shelly 2PM Gen4 4-pack",
+    "url": "https://www.shelly.com/products/shelly-2pm-gen4-4-pack?variant=58252744753501",
+    "targetPrice": 200,
+    "notes": "S4SW-002P16EU",
+    "shopify": true
+  },
+  {
+    "id": "mn17l5q12hy",
+    "name": "Adafruit LTR390 UV Light Sensor",
+    "url": "https://core-electronics.com.au/adafruit-ltr390-uv-light-sensor-stemma-qt-qwiic.html",
+    "targetPrice": 10,
+    "notes": "ADA4831"
+  },
+  {
+    "id": "mn17ce9klqg",
+    "name": "Core Electronics 5M RGB LED Strip APA102c 60/m Weatherproof",
+    "url": "https://core-electronics.com.au/5m-rgb-led-strip-apa102c-60-per-meter-black-strip-weatherproof.html",
+    "targetPrice": 125,
+    "notes": "CE05985"
+  },
+  {
+    "id": "mn15nzpbzpy",
+    "name": "Pimoroni Inky Impression 7.3\" E-Ink Display",
+    "url": "https://core-electronics.com.au/pimoroni-inky-impression-e-ink-screen-73-for-pi.html",
+    "targetPrice": 150,
+    "notes": "PIM773"
   }
 ]
