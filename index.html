@@ -5,402 +5,504 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>noice-proice</title>
 <style>
-  :root {
-    --bg:       #f5f5f5;
-    --surface:  #ffffff;
-    --border:   #e5e7eb;
-    --text:     #111827;
-    --muted:    #6b7280;
-    --accent:   #4f46e5;
-    --green:    #16a34a;
-    --green-bg: #f0fdf4;
-    --green-bd: #bbf7d0;
-    --red:      #dc2626;
-    --amber:    #d97706;
-    --radius:   12px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg:       #0f0f0f;
-      --surface:  #1a1a1a;
-      --border:   #2a2a2a;
-      --text:     #f1f5f9;
-      --muted:    #94a3b8;
-      --accent:   #818cf8;
-      --green:    #4ade80;
-      --green-bg: #052e16;
-      --green-bd: #166534;
-      --red:      #f87171;
-      --amber:    #fbbf24;
-    }
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: system-ui, -apple-system, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 24px 16px 48px;
-  }
-  header {
-    max-width: 900px;
-    margin: 0 auto 28px;
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .logo {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.5px;
-  }
-  .logo span { color: var(--accent); }
-  .last-run {
-    font-size: 12px;
-    color: var(--muted);
-    margin-left: auto;
-  }
-  .stats {
-    max-width: 900px;
-    margin: 0 auto 24px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 10px;
-  }
-  .stat {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-  }
-  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-  .stat-val   { font-size: 22px; font-weight: 600; }
-  .grid {
-    max-width: 900px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 14px;
-  }
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    transition: box-shadow .15s;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
-  .card.target-hit {
-    border-color: var(--green-bd);
-    background: linear-gradient(var(--surface) 0%, var(--green-bg) 100%);
-  }
-  .card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .card-name {
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1.4;
-  }
-  .card-name a { color: inherit; text-decoration: none; }
-  .card-name a:hover { color: var(--accent); }
-  .badge {
-    font-size: 10px;
-    font-weight: 600;
-    padding: 2px 7px;
-    border-radius: 99px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .badge-green  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
-  .badge-muted  { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
-  .badge-err    { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
-  @media (prefers-color-scheme: dark) {
-    .badge-err  { background: #1c0408; color: #f87171; border-color: #450a0a; }
-  }
-  .price-row {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-  }
-  .price-current {
-    font-size: 26px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-  }
-  .price-current.green { color: var(--green); }
-  .trend {
-    font-size: 12px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 2px;
-  }
-  .trend.down { color: var(--green); }
-  .trend.up   { color: var(--red); }
-  .trend.flat { color: var(--muted); }
-  .target-line {
-    font-size: 11px;
-    color: var(--muted);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .target-line .hit { color: var(--green); font-weight: 600; }
-  .sparkline-wrap { height: 36px; }
-  sparkline-wrap svg { display: block; }
-  .meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .loading {
-    text-align: center;
-    padding: 80px 16px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-  .error-state {
-    text-align: center;
-    padding: 60px 16px;
-    color: var(--muted);
-    max-width: 420px;
-    margin: 0 auto;
-  }
-  .error-state h2 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
-  .error-state p  { font-size: 13px; line-height: 1.6; }
-  .sort-bar {
-    max-width: 900px;
-    margin: 0 auto 16px;
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .sort-btn {
-    font-size: 12px;
-    padding: 5px 10px;
-    border-radius: 99px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--muted);
-    cursor: pointer;
-  }
-  .sort-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-  .notes { font-size: 11px; color: var(--muted); }
+:root {
+  --bg:#f5f5f5; --surface:#fff; --border:#e5e7eb; --text:#111827; --muted:#6b7280;
+  --accent:#4f46e5; --accent-bg:#eef2ff;
+  --green:#16a34a; --green-bg:#f0fdf4; --green-bd:#bbf7d0;
+  --red:#dc2626; --red-bg:#fff1f2; --red-bd:#fecdd3;
+  --amber:#d97706; --amber-bg:#fffbeb;
+  --r:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#0f0f0f; --surface:#1a1a1a; --border:#2a2a2a; --text:#f1f5f9; --muted:#94a3b8;
+  --accent:#818cf8; --accent-bg:#1e1b4b;
+  --green:#4ade80; --green-bg:#052e16; --green-bd:#166534;
+  --red:#f87171; --red-bg:#1c0408; --red-bd:#450a0a;
+  --amber:#fbbf24; --amber-bg:#1c1403;
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px 16px 60px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── header ── */
+header{max-width:920px;margin:0 auto 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{font-size:20px;font-weight:600;letter-spacing:-.5px}
+.logo span{color:var(--accent)}
+.last-run{font-size:12px;color:var(--muted);margin-left:auto}
+.header-btns{display:flex;gap:6px}
+button{cursor:pointer;font-family:inherit;transition:background .1s}
+
+/* ── stats ── */
+.stats{max-width:920px;margin:0 auto 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.stat-val{font-size:22px;font-weight:600}
+
+/* ── sort ── */
+.sort-bar{max-width:920px;margin:0 auto 14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sort-lbl{font-size:12px;color:var(--muted)}
+.sort-btn{font-size:12px;padding:5px 10px;border-radius:99px;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.sort-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ── price grid ── */
+.grid{max-width:920px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px;display:flex;flex-direction:column;gap:9px;transition:box-shadow .15s;position:relative}
+.card:hover{box-shadow:0 4px 16px rgba(0,0,0,.07)}
+.card.hit{border-color:var(--green-bd);background:linear-gradient(var(--surface) 0%,var(--green-bg) 100%)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.card-name{font-size:14px;font-weight:600;line-height:1.35}
+.card-name a{color:inherit}
+.card-name a:hover{color:var(--accent)}
+.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;white-space:nowrap;flex-shrink:0}
+.b-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.b-muted{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+.b-err{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bd)}
+.price-row{display:flex;align-items:baseline;gap:8px}
+.price{font-size:26px;font-weight:700;letter-spacing:-.5px}
+.price.green{color:var(--green)}
+.trend{font-size:12px;font-weight:600}
+.trend.down{color:var(--green)}
+.trend.up{color:var(--red)}
+.trend.flat{color:var(--muted)}
+.target-line{font-size:11px;color:var(--muted);display:flex;gap:4px;align-items:center}
+.target-line .hit{color:var(--green);font-weight:600}
+.spark{height:34px}
+.card-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+.card-notes{font-size:11px;color:var(--muted)}
+
+/* edit btn on card */
+.card-edit-btn{position:absolute;top:10px;right:10px;display:none;font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.card-edit-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.manage-mode .card:hover .card-edit-btn{display:block}
+.manage-mode .card-top .badge{margin-right:60px}
+
+/* ── manage bar ── */
+.manage-bar{max-width:920px;margin:0 auto 14px;display:none;background:var(--accent-bg);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;gap:10px;align-items:center;flex-wrap:wrap}
+.manage-bar.visible{display:flex}
+.manage-bar-text{font-size:13px;color:var(--accent);font-weight:500;flex:1}
+.token-row{display:flex;gap:6px;align-items:center}
+.token-row input{padding:6px 10px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-size:12px;font-family:monospace;width:220px}
+.token-row input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.token-row a{font-size:11px;color:var(--muted)}
+
+/* ── buttons ── */
+.btn{font-size:13px;padding:7px 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.btn:hover{background:var(--bg)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover{opacity:.9}
+.btn-sm{font-size:12px;padding:5px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
+.btn-sm:hover{background:var(--bg)}
+
+/* ── modal ── */
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal-wrap.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:14px;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:16px;font-weight:600}
+.modal-close{margin-left:auto;font-size:18px;background:none;border:none;color:var(--muted);line-height:1;padding:0 4px}
+.modal-close:hover{color:var(--text)}
+.modal-head{display:flex;align-items:center;gap:8px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.field input,.field textarea{padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:13px;font-family:inherit;width:100%}
+.field input:focus,.field textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:420px){.two-col{grid-template-columns:1fr}}
+.check-row{display:flex;gap:8px;align-items:center;font-size:13px}
+.check-row input[type=checkbox]{width:15px;height:15px;accent-color:var(--accent)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;padding-top:4px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#111;color:#fff;font-size:13px;padding:8px 16px;border-radius:8px;z-index:200;pointer-events:none;opacity:0;transition:opacity .2s}
+.toast.show{opacity:1}
+
+/* ── empty / loading ── */
+.loading{text-align:center;padding:80px 16px;color:var(--muted);font-size:14px}
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">noice<span>-</span>proice</div>
-  <div class="last-run" id="last-run">loading…</div>
+  <div class="header-btns">
+    <button class="btn btn-sm" id="add-btn" onclick="openAdd()" style="display:none">+ Add item</button>
+    <button class="btn btn-sm" id="manage-toggle" onclick="toggleManage()">✏️ Manage</button>
+  </div>
+  <div class="last-run" id="last-run"></div>
 </header>
+
+<!-- manage bar -->
+<div class="manage-bar" id="manage-bar">
+  <div class="manage-bar-text" id="manage-status">Connect with a GitHub token to add, edit or remove items.</div>
+  <div class="token-row">
+    <input type="password" id="pat-input" placeholder="ghp_…" autocomplete="off">
+    <button class="btn btn-sm btn-accent" onclick="connectToken()">Connect</button>
+    <a href="https://github.com/settings/tokens/new?scopes=repo&description=noice-proice" target="_blank" title="Get a token">?</a>
+  </div>
+</div>
 
 <div class="stats" id="stats" hidden>
   <div class="stat"><div class="stat-label">Watching</div><div class="stat-val" id="s-total">—</div></div>
-  <div class="stat"><div class="stat-label">Below target</div><div class="stat-val" id="s-target" style="color:var(--green)">—</div></div>
+  <div class="stat"><div class="stat-label">Below target</div><div class="stat-val" id="s-hits" style="color:var(--green)">—</div></div>
   <div class="stat"><div class="stat-label">Dropped today</div><div class="stat-val" id="s-drops" style="color:var(--accent)">—</div></div>
   <div class="stat"><div class="stat-label">Errors</div><div class="stat-val" id="s-errors" style="color:var(--amber)">—</div></div>
 </div>
 
 <div class="sort-bar" id="sort-bar" hidden>
-  <span style="font-size:12px;color:var(--muted);">Sort:</span>
+  <span class="sort-lbl">Sort:</span>
   <button class="sort-btn active" data-sort="name">A → Z</button>
   <button class="sort-btn" data-sort="price-low">Price ↑</button>
   <button class="sort-btn" data-sort="price-high">Price ↓</button>
-  <button class="sort-btn" data-sort="target">Targets first</button>
+  <button class="sort-btn" data-sort="hits">Targets first</button>
   <button class="sort-btn" data-sort="drop">Biggest drop</button>
 </div>
 
-<main id="main">
-  <div class="loading">Loading prices…</div>
-</main>
+<main id="main"><div class="loading">Loading prices…</div></main>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-wrap" id="modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modal-title">Add item</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="field">
+      <label>Product URL</label>
+      <input id="m-url" type="url" placeholder="https://store.example.com/products/thing" oninput="onUrlInput()">
+    </div>
+    <div class="field">
+      <label>Name</label>
+      <input id="m-name" type="text" placeholder="Product display name">
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label>Target price (AUD $)</label>
+        <input id="m-target" type="number" min="0" step="0.01" placeholder="29.99">
+      </div>
+      <div class="field">
+        <label>Notes / SKU</label>
+        <input id="m-notes" type="text" placeholder="optional">
+      </div>
+    </div>
+    <div class="check-row">
+      <input type="checkbox" id="m-shopify">
+      <label for="m-shopify">Shopify store <span style="color:var(--muted);font-size:11px" id="shopify-hint">(auto-detected from URL)</span></label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-accent" id="modal-save" onclick="saveModal()">Add to watchlist</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
+const REPO    = 'picklegithub/noice-proice';
+const SHOPIFY = ['/products/','myshopify.com','shop.trmnl.com','au-shop.nanoleaf.me',
+                 'kegland.com.au','shop.everythingsmart.io','au.yeti.com','shop.dragons.com.au',
+                 'www.shelly.com'];
+
+let priceData   = {};
+let watchlist   = [];
+let wlSha       = '';
+let token       = sessionStorage.getItem('np_token') || '';
+let editingId   = null;
+let manageOpen  = false;
+let currentSort = 'name';
+let allItems    = [];
+
+// ── utils ─────────────────────────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const fmt = n => n == null ? '—' : '$' + n.toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
+const relTime = iso => {
+  if(!iso) return '—';
+  const h = (Date.now() - new Date(iso)) / 3600000;
+  return h<1 ? Math.round(h*60)+'m ago' : h<24 ? Math.round(h)+'h ago' : Math.round(h/24)+'d ago';
+};
+function isShopify(url){ return SHOPIFY.some(s=>url.includes(s)); }
+function slugify(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function toast(msg, dur=2800){
+  const el=$('toast'); el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), dur);
+}
+
 // ── sparkline ─────────────────────────────────────────────────────────────────
-function sparkline(history, hit) {
-  if (!history || history.length < 2) return '';
-  const prices = history.map(h => h.price);
-  const min = Math.min(...prices);
-  const max = Math.max(...prices);
-  const range = max - min || 1;
-  const W = 120, H = 32, pad = 3;
-  const pts = prices.map((p, i) => {
-    const x = pad + (i / (prices.length - 1)) * (W - pad * 2);
-    const y = H - pad - ((p - min) / range) * (H - pad * 2);
+function spark(history, hit){
+  if(!history||history.length<2) return '';
+  const prices=history.map(h=>h.price);
+  const mn=Math.min(...prices), mx=Math.max(...prices), rng=mx-mn||1;
+  const W=120,H=30,p=3;
+  const pts=prices.map((v,i)=>{
+    const x=p+(i/(prices.length-1))*(W-p*2);
+    const y=H-p-((v-mn)/rng)*(H-p*2);
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
-  const color = hit ? '#16a34a' : '#6366f1';
+  const col=hit?'#16a34a':'#6366f1';
+  const [lx,ly]=pts[pts.length-1].split(',');
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="overflow:visible">
-    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-    <circle cx="${pts[pts.length-1].split(',')[0]}" cy="${pts[pts.length-1].split(',')[1]}" r="2.5" fill="${color}"/>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${lx}" cy="${ly}" r="2.5" fill="${col}"/>
   </svg>`;
 }
 
-// ── relative time ─────────────────────────────────────────────────────────────
-function relTime(iso) {
-  if (!iso) return '—';
-  const diff = Date.now() - new Date(iso).getTime();
-  const h = diff / 3_600_000;
-  if (h < 1)  return `${Math.round(h * 60)}m ago`;
-  if (h < 24) return `${Math.round(h)}h ago`;
-  return `${Math.round(h / 24)}d ago`;
-}
-
-function fmt(n) {
-  if (n == null) return '—';
-  return '$' + n.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-// ── card render ───────────────────────────────────────────────────────────────
-function renderCard(id, item) {
-  const price   = item.currentPrice;
-  const prev    = item.previousPrice;
-  const target  = item.targetPrice;
-  const hit     = price != null && target != null && price <= target;
-  const history = item.history || [];
-
-  const trend = (() => {
-    if (!price || !prev) return { cls: 'flat', arrow: '–', txt: '' };
-    const pct = ((price - prev) / prev * 100).toFixed(1);
-    if (price < prev) return { cls: 'down', arrow: '↓', txt: `${Math.abs(pct)}%` };
-    if (price > prev) return { cls: 'up',   arrow: '↑', txt: `${pct}%` };
-    return { cls: 'flat', arrow: '–', txt: '' };
+// ── render ─────────────────────────────────────────────────────────────────────
+function renderCard(id, item){
+  const price=item.currentPrice, prev=item.previousPrice, target=item.targetPrice;
+  const hit = price!=null && target!=null && price<=target;
+  const history = item.history||[];
+  const trend = (()=>{
+    if(!price||!prev) return {cls:'flat',arrow:'–',txt:''};
+    const pct=((price-prev)/prev*100).toFixed(1);
+    if(price<prev) return {cls:'down',arrow:'↓',txt:Math.abs(pct)+'%'};
+    if(price>prev) return {cls:'up',arrow:'↑',txt:pct+'%'};
+    return {cls:'flat',arrow:'–',txt:''};
   })();
-
-  const badgeHtml = item.lastError
-    ? `<span class="badge badge-err">error</span>`
-    : hit
-      ? `<span class="badge badge-green">below target</span>`
-      : `<span class="badge badge-muted">${item.source || 'unchecked'}</span>`;
-
-  const targetHtml = target
-    ? `<div class="target-line">
-        Target ${fmt(target)}
-        ${hit ? '<span class="hit">✓ hit</span>' : `· ${fmt(price && target ? price - target : null)} away`}
-       </div>`
-    : '';
-
-  return `
-  <div class="card${hit ? ' target-hit' : ''}" id="card-${id}">
+  const badge = item.lastError
+    ? `<span class="badge b-err">error</span>`
+    : hit ? `<span class="badge b-green">below target</span>`
+    : `<span class="badge b-muted">${item.source||'unchecked'}</span>`;
+  const targetHtml = target ? `<div class="target-line">Target ${fmt(target)}
+    ${hit?'<span class="hit">✓ hit</span>': price!=null?`· ${fmt(price-target)} away`:''}
+    </div>` : '';
+  return `<div class="card${hit?' hit':''}" id="card-${id}">
+    <button class="card-edit-btn" onclick="openEdit('${id}')">Edit</button>
     <div class="card-top">
       <div class="card-name"><a href="${item.url}" target="_blank" rel="noopener">${item.name}</a></div>
-      ${badgeHtml}
+      ${badge}
     </div>
     <div class="price-row">
-      <div class="price-current${hit ? ' green' : ''}">${fmt(price)}</div>
+      <div class="price${hit?' green':''}">${fmt(price)}</div>
       <div class="trend ${trend.cls}">${trend.arrow} ${trend.txt}</div>
     </div>
     ${targetHtml}
-    <div class="sparkline-wrap">${sparkline(history, hit)}</div>
-    ${item.notes ? `<div class="notes">${item.notes}</div>` : ''}
-    <div class="meta">
-      <span>${item.source ? item.source.replace('shopify_api','shopify').replace('json_ld','JSON-LD').replace(/^css:.*/,'DOM') : '—'}</span>
+    <div class="spark">${spark(history,hit)}</div>
+    ${item.notes?`<div class="card-notes">${item.notes}</div>`:''}
+    <div class="card-meta">
+      <span>${(item.source||'—').replace('shopify_api','shopify').replace('json_ld','JSON-LD').replace(/^css:.*/,'DOM')}</span>
       <span>${relTime(item.lastChecked)}</span>
     </div>
   </div>`;
 }
 
-// ── sort ──────────────────────────────────────────────────────────────────────
-let currentSort = 'name';
-let allItems = [];
-
-function sortItems(items, mode) {
-  const arr = [...items];
-  if (mode === 'price-low')  arr.sort((a,b) => (a[1].currentPrice??Infinity) - (b[1].currentPrice??Infinity));
-  if (mode === 'price-high') arr.sort((a,b) => (b[1].currentPrice??-1) - (a[1].currentPrice??-1));
-  if (mode === 'name')       arr.sort((a,b) => a[1].name.localeCompare(b[1].name));
-  if (mode === 'target')     arr.sort((a,b) => {
-    const ha = a[1].currentPrice != null && a[1].targetPrice != null && a[1].currentPrice <= a[1].targetPrice;
-    const hb = b[1].currentPrice != null && b[1].targetPrice != null && b[1].currentPrice <= b[1].targetPrice;
-    return hb - ha;
+function sortItems(items, mode){
+  const a=[...items];
+  if(mode==='price-low')  a.sort((x,y)=>(x[1].currentPrice??Infinity)-(y[1].currentPrice??Infinity));
+  if(mode==='price-high') a.sort((x,y)=>(y[1].currentPrice??-1)-(x[1].currentPrice??-1));
+  if(mode==='name')       a.sort((x,y)=>x[1].name.localeCompare(y[1].name));
+  if(mode==='hits')       a.sort((x,y)=>{
+    const ha=x[1].currentPrice!=null&&x[1].targetPrice!=null&&x[1].currentPrice<=x[1].targetPrice;
+    const hb=y[1].currentPrice!=null&&y[1].targetPrice!=null&&y[1].currentPrice<=y[1].targetPrice;
+    return hb-ha;
   });
-  if (mode === 'drop')       arr.sort((a,b) => {
-    const da = a[1].previousPrice ? (a[1].previousPrice - a[1].currentPrice) / a[1].previousPrice : 0;
-    const db = b[1].previousPrice ? (b[1].previousPrice - b[1].currentPrice) / b[1].previousPrice : 0;
-    return db - da;
+  if(mode==='drop') a.sort((x,y)=>{
+    const da=x[1].previousPrice?(x[1].previousPrice-x[1].currentPrice)/x[1].previousPrice:0;
+    const db=y[1].previousPrice?(y[1].previousPrice-y[1].currentPrice)/y[1].previousPrice:0;
+    return db-da;
   });
-  return arr;
+  return a;
 }
 
-function renderGrid() {
-  const sorted = sortItems(allItems, currentSort);
-  document.getElementById('main').innerHTML =
-    `<div class="grid">${sorted.map(([id, item]) => renderCard(id, item)).join('')}</div>`;
+function renderGrid(){
+  const sorted=sortItems(allItems, currentSort);
+  $('main').innerHTML=`<div class="grid">${sorted.map(([id,item])=>renderCard(id,item)).join('')}</div>`;
 }
 
-document.querySelectorAll('.sort-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+// ── load price data ────────────────────────────────────────────────────────────
+async function load(){
+  try{
+    const r=await fetch('data/prices.json?t='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    priceData=await r.json();
+    allItems=Object.entries(priceData);
+    if(!allItems.length){
+      $('main').innerHTML='<div class="loading">No data yet — run the price check first.</div>';
+      return;
+    }
+    const hits  =allItems.filter(([,v])=>v.currentPrice!=null&&v.targetPrice!=null&&v.currentPrice<=v.targetPrice);
+    const drops =allItems.filter(([,v])=>v.previousPrice&&v.currentPrice<v.previousPrice);
+    const errors=allItems.filter(([,v])=>v.lastError);
+    $('s-total').textContent=allItems.length;
+    $('s-hits').textContent=hits.length;
+    $('s-drops').textContent=drops.length;
+    $('s-errors').textContent=errors.length;
+    const times=allItems.map(([,v])=>v.lastChecked).filter(Boolean).sort().reverse();
+    if(times[0]) $('last-run').textContent='Last checked '+new Date(times[0]).toLocaleString('en-AU',{dateStyle:'medium',timeStyle:'short'});
+    $('stats').hidden=false; $('sort-bar').hidden=false;
+    renderGrid();
+  }catch(e){
+    $('main').innerHTML=`<div class="loading">Could not load prices.json — ${e.message}</div>`;
+  }
+}
+
+// ── sort buttons ───────────────────────────────────────────────────────────────
+document.querySelectorAll('.sort-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
-    currentSort = btn.dataset.sort;
+    currentSort=btn.dataset.sort;
     renderGrid();
   });
 });
 
-// ── load data ─────────────────────────────────────────────────────────────────
-async function load() {
-  try {
-    const r = await fetch('data/prices.json?t=' + Date.now());
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const data = await r.json();
+// ── manage mode ────────────────────────────────────────────────────────────────
+function toggleManage(){
+  manageOpen=!manageOpen;
+  const bar=$('manage-bar'), btn=$('manage-toggle'), addBtn=$('add-btn');
+  bar.classList.toggle('visible', manageOpen);
+  btn.textContent=manageOpen?'✕ Done':'✏️ Manage';
+  addBtn.style.display=manageOpen&&token?'block':'none';
+  document.body.classList.toggle('manage-mode', manageOpen);
+  if(manageOpen && token) setConnected();
+  if(!manageOpen){ editingId=null; }
+}
 
-    allItems = Object.entries(data);
-
-    if (allItems.length === 0) {
-      document.getElementById('main').innerHTML = `
-        <div class="error-state">
-          <h2>No data yet</h2>
-          <p>The first price check hasn't run yet. Trigger the GitHub Action manually or wait for tomorrow's scheduled run.</p>
-        </div>`;
-      return;
-    }
-
-    // Stats
-    const prices   = allItems.map(([,v]) => v.currentPrice).filter(Boolean);
-    const hits     = allItems.filter(([,v]) => v.currentPrice != null && v.targetPrice != null && v.currentPrice <= v.targetPrice);
-    const drops    = allItems.filter(([,v]) => v.previousPrice && v.currentPrice < v.previousPrice);
-    const errors   = allItems.filter(([,v]) => v.lastError);
-
-    document.getElementById('s-total').textContent  = allItems.length;
-    document.getElementById('s-target').textContent = hits.length;
-    document.getElementById('s-drops').textContent  = drops.length;
-    document.getElementById('s-errors').textContent = errors.length;
-
-    // Most recent check time
-    const times = allItems.map(([,v]) => v.lastChecked).filter(Boolean).sort().reverse();
-    if (times[0]) {
-      const d = new Date(times[0]);
-      document.getElementById('last-run').textContent =
-        `Last checked ${d.toLocaleString('en-AU', { dateStyle:'medium', timeStyle:'short' })} AEST`;
-    }
-
-    document.getElementById('stats').hidden    = false;
-    document.getElementById('sort-bar').hidden = false;
-
-    renderGrid();
-
-  } catch (err) {
-    document.getElementById('main').innerHTML = `
-      <div class="error-state">
-        <h2>Could not load price data</h2>
-        <p>Make sure <code>data/prices.json</code> exists in the repo and GitHub Pages is serving from the correct branch.<br><br>Error: ${err.message}</p>
-      </div>`;
+// ── token ──────────────────────────────────────────────────────────────────────
+async function connectToken(){
+  const val=$('pat-input').value.trim();
+  if(!val) return;
+  token=val;
+  try{
+    await ghGet(`/repos/${REPO}/contents/watchlist.json`);
+    sessionStorage.setItem('np_token', token);
+    setConnected();
+    toast('Connected ✓');
+  }catch(e){
+    token='';
+    $('manage-status').textContent='Token invalid or missing repo scope. Try again.';
+    $('manage-status').style.color='var(--red)';
   }
 }
+function setConnected(){
+  $('manage-status').textContent='Connected — hover any card and click Edit, or use + Add item.';
+  $('manage-status').style.color='';
+  $('token-row','')
+  const row=$('manage-bar').querySelector('.token-row');
+  if(row) row.style.display='none';
+  $('add-btn').style.display='block';
+}
+
+// ── github api ─────────────────────────────────────────────────────────────────
+async function ghGet(path){
+  const r=await fetch('https://api.github.com'+path,{
+    headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json'}
+  });
+  const d=await r.json();
+  if(!r.ok) throw new Error(d.message||'HTTP '+r.status);
+  return d;
+}
+async function ghPut(path,body){
+  const r=await fetch('https://api.github.com'+path,{
+    method:'PUT',
+    headers:{'Authorization':'token '+token,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  const d=await r.json();
+  if(!r.ok) throw new Error(d.message||'HTTP '+r.status);
+  return d;
+}
+async function loadWatchlist(){
+  const d=await ghGet(`/repos/${REPO}/contents/watchlist.json`);
+  wlSha=d.sha;
+  watchlist=JSON.parse(atob(d.content.replace(/\n/g,'')));
+}
+async function saveWatchlist(msg){
+  const content=btoa(unescape(encodeURIComponent(JSON.stringify(watchlist,null,2))));
+  const d=await ghPut(`/repos/${REPO}/contents/watchlist.json`,{message:msg,content,sha:wlSha});
+  wlSha=d.content.sha;
+}
+
+// ── modal ──────────────────────────────────────────────────────────────────────
+function openAdd(){
+  if(!token){toggleManage();return;}
+  editingId=null;
+  $('modal-title').textContent='Add item';
+  $('modal-save').textContent='Add to watchlist';
+  ['m-url','m-name','m-notes','m-target'].forEach(id=>$(id).value='');
+  $('m-shopify').checked=false;
+  $('shopify-hint').textContent='(auto-detected from URL)';
+  $('modal').classList.add('open');
+  $('m-url').focus();
+}
+async function openEdit(id){
+  if(!token) return;
+  await loadWatchlist();
+  const item=watchlist.find(i=>i.id===id);
+  if(!item) return;
+  editingId=id;
+  $('modal-title').textContent='Edit item';
+  $('modal-save').textContent='Save changes';
+  $('m-url').value=item.url||'';
+  $('m-name').value=item.name||'';
+  $('m-target').value=item.targetPrice!=null?item.targetPrice:'';
+  $('m-notes').value=item.notes||'';
+  $('m-shopify').checked=!!item.shopify;
+  $('shopify-hint').textContent=item.shopify?'✓ Shopify':'(auto-detected)';
+  $('modal').classList.add('open');
+}
+function closeModal(){ $('modal').classList.remove('open'); }
+$('modal').addEventListener('click', e=>{ if(e.target===$('modal')) closeModal(); });
+
+function onUrlInput(){
+  const url=$('m-url').value;
+  const detected=isShopify(url);
+  $('m-shopify').checked=detected;
+  $('shopify-hint').textContent=detected?'✓ auto-detected':'(auto-detected from URL)';
+}
+
+async function saveModal(){
+  const url=$('m-url').value.trim();
+  const name=$('m-name').value.trim();
+  const target=$('m-target').value;
+  const notes=$('m-notes').value.trim();
+  const shopify=$('m-shopify').checked;
+  if(!url||!name){toast('URL and name are required',2000);return;}
+  const btn=$('modal-save'); btn.disabled=true; btn.textContent='Saving…';
+  try{
+    await loadWatchlist();
+    if(editingId){
+      const idx=watchlist.findIndex(i=>i.id===editingId);
+      if(idx>-1){
+        watchlist[idx]={...watchlist[idx],name,url};
+        if(target) watchlist[idx].targetPrice=parseFloat(target); else delete watchlist[idx].targetPrice;
+        if(notes) watchlist[idx].notes=notes; else delete watchlist[idx].notes;
+        if(shopify) watchlist[idx].shopify=true; else delete watchlist[idx].shopify;
+        await saveWatchlist('edit: update '+name);
+        toast('Saved ✓ — prices will update at next check');
+      }
+    } else {
+      const item={id:slugify(name)+'-'+Date.now().toString(36),name,url};
+      if(target) item.targetPrice=parseFloat(target);
+      if(notes) item.notes=notes;
+      if(shopify) item.shopify=true;
+      watchlist.push(item);
+      await saveWatchlist('edit: add '+name);
+      toast('Added ✓ — will be checked tonight at 9pm AEST');
+    }
+    closeModal();
+  }catch(e){
+    toast('Error: '+e.message, 4000);
+  }finally{
+    btn.disabled=false; btn.textContent=editingId?'Save changes':'Add to watchlist';
+  }
+}
+
+// remove via card button (we add dynamically)
+window.openEdit=openEdit;
+window.removeItem=async function(id){
+  if(!token||!confirm('Remove this item from your watchlist?')) return;
+  try{
+    await loadWatchlist();
+    const name=(watchlist.find(i=>i.id===id)||{}).name||id;
+    watchlist=watchlist.filter(i=>i.id!==id);
+    await saveWatchlist('edit: remove '+name);
+    toast('Removed ✓');
+    // remove card from DOM instantly
+    const el=document.getElementById('card-'+id);
+    if(el) el.style.opacity='0.3';
+  }catch(e){ toast('Error: '+e.message,4000); }
+};
+
+// restore session token
+if(token){ /* connect silently on next manage open */ }
 
 load();
 </script>
