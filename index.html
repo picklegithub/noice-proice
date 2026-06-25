@@ -125,17 +125,30 @@ button{cursor:pointer;font-family:inherit;transition:background .1s}
   <div class="header-btns">
     <button class="btn btn-sm" id="add-btn" onclick="openAdd()" style="display:none">+ Add item</button>
     <button class="btn btn-sm" id="manage-toggle" onclick="toggleManage()">✏️ Manage</button>
+    <button class="btn btn-sm" id="signout-btn" onclick="signOut()" style="display:none" title="Sign out">⎋ Sign out</button>
   </div>
   <div class="last-run" id="last-run"></div>
 </header>
 
 <!-- manage bar -->
 <div class="manage-bar" id="manage-bar">
-  <div class="manage-bar-text" id="manage-status">Connect with a GitHub token to add, edit or remove items.</div>
-  <div class="token-row">
-    <input type="password" id="pat-input" placeholder="ghp_…" autocomplete="off">
-    <button class="btn btn-sm btn-accent" onclick="connectToken()">Connect</button>
-    <a href="https://github.com/settings/tokens/new?scopes=repo&description=noice-proice" target="_blank" title="Get a token">?</a>
+  <div id="connect-panel" style="width:100%;display:flex;flex-direction:column;gap:10px">
+    <div style="font-size:13px;font-weight:500;color:var(--accent)">Connect GitHub to add, edit or remove items</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6">
+      1. Go to <a href="https://github.com/settings/tokens/new?scopes=repo&description=noice-proice+manage" target="_blank" style="color:var(--accent)">github.com/settings/tokens</a>
+      &nbsp;→ Generate new token (classic) → name it → tick <strong>repo</strong> → Generate → copy it<br>
+      2. Paste below — stored in your browser only, never in code
+    </div>
+    <div class="token-row">
+      <input type="password" id="pat-input" placeholder="ghp_…" autocomplete="off"
+        onkeydown="if(event.key==='Enter') connectToken()">
+      <button class="btn btn-sm btn-accent" onclick="connectToken()">Connect</button>
+    </div>
+  </div>
+  <div id="connected-panel" style="width:100%;display:none;align-items:center;gap:10px">
+    <div style="font-size:13px;color:var(--accent);font-weight:500" id="manage-status">
+      Connected — hover a card to edit, or use + Add item
+    </div>
   </div>
 </div>
 
@@ -187,7 +200,9 @@ button{cursor:pointer;font-family:inherit;transition:background .1s}
       <label for="m-shopify">Shopify store <span style="color:var(--muted);font-size:11px" id="shopify-hint">(auto-detected from URL)</span></label>
     </div>
     <div class="modal-actions">
-      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn" id="modal-remove" onclick="removeFromModal()"
+        style="display:none;color:var(--red);border-color:var(--red-bd);background:var(--red-bg)">Remove item</button>
+      <button class="btn" onclick="closeModal()" style="margin-left:auto">Cancel</button>
       <button class="btn btn-accent" id="modal-save" onclick="saveModal()">Add to watchlist</button>
     </div>
   </div>
@@ -204,7 +219,7 @@ const SHOPIFY = ['/products/','myshopify.com','shop.trmnl.com','au-shop.nanoleaf
 let priceData   = {};
 let watchlist   = [];
 let wlSha       = '';
-let token       = sessionStorage.getItem('np_token') || '';
+let token       = localStorage.getItem('np_token') || '';
 let editingId   = null;
 let manageOpen  = false;
 let currentSort = 'name';
@@ -349,10 +364,9 @@ function toggleManage(){
   const bar=$('manage-bar'), btn=$('manage-toggle'), addBtn=$('add-btn');
   bar.classList.toggle('visible', manageOpen);
   btn.textContent=manageOpen?'✕ Done':'✏️ Manage';
-  addBtn.style.display=manageOpen&&token?'block':'none';
   document.body.classList.toggle('manage-mode', manageOpen);
-  if(manageOpen && token) setConnected();
-  if(!manageOpen){ editingId=null; }
+  if(!manageOpen){ editingId=null; addBtn.style.display='none'; return; }
+  if(token){ setConnected(); } // already connected
 }
 
 // ── token ──────────────────────────────────────────────────────────────────────
@@ -362,7 +376,7 @@ async function connectToken(){
   token=val;
   try{
     await ghGet(`/repos/${REPO}/contents/watchlist.json`);
-    sessionStorage.setItem('np_token', token);
+    localStorage.setItem('np_token', token);
     setConnected();
     toast('Connected ✓');
   }catch(e){
@@ -372,12 +386,24 @@ async function connectToken(){
   }
 }
 function setConnected(){
-  $('manage-status').textContent='Connected — hover any card and click Edit, or use + Add item.';
-  $('manage-status').style.color='';
-  $('token-row','')
-  const row=$('manage-bar').querySelector('.token-row');
-  if(row) row.style.display='none';
+  $('connect-panel').style.display='none';
+  $('connected-panel').style.display='flex';
   $('add-btn').style.display='block';
+  $('signout-btn').style.display='block';
+}
+
+function signOut(){
+  localStorage.removeItem('np_token');
+  token='';
+  $('connect-panel').style.display='flex';
+  $('connected-panel').style.display='none';
+  $('add-btn').style.display='none';
+  $('signout-btn').style.display='none';
+  $('pat-input').value='';
+  document.body.classList.remove('manage-mode');
+  $('manage-bar').classList.remove('visible');
+  $('manage-toggle').textContent='✏️ Manage';
+  manageOpen=false;
 }
 
 // ── github api ─────────────────────────────────────────────────────────────────
@@ -416,6 +442,7 @@ function openAdd(){
   editingId=null;
   $('modal-title').textContent='Add item';
   $('modal-save').textContent='Add to watchlist';
+  $('modal-remove').style.display='none';
   ['m-url','m-name','m-notes','m-target'].forEach(id=>$(id).value='');
   $('m-shopify').checked=false;
   $('shopify-hint').textContent='(auto-detected from URL)';
@@ -430,6 +457,7 @@ async function openEdit(id){
   editingId=id;
   $('modal-title').textContent='Edit item';
   $('modal-save').textContent='Save changes';
+  $('modal-remove').style.display='block';
   $('m-url').value=item.url||'';
   $('m-name').value=item.name||'';
   $('m-target').value=item.targetPrice!=null?item.targetPrice:'';
@@ -437,6 +465,22 @@ async function openEdit(id){
   $('m-shopify').checked=!!item.shopify;
   $('shopify-hint').textContent=item.shopify?'✓ Shopify':'(auto-detected)';
   $('modal').classList.add('open');
+}
+async function removeFromModal(){
+  if(!editingId) return;
+  const item=watchlist.find(i=>i.id===editingId);
+  if(!item) return;
+  if(!confirm(\`Remove "\${item.name}" from your watchlist?\`)) return;
+  closeModal();
+  try{
+    await loadWatchlist();
+    watchlist=watchlist.filter(i=>i.id!==editingId);
+    await saveWatchlist('edit: remove '+item.name);
+    const el=document.getElementById('card-'+editingId);
+    if(el){ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),300); }
+    toast('Removed ✓');
+    editingId=null;
+  }catch(e){ toast('Error: '+e.message, 4000); }
 }
 function closeModal(){ $('modal').classList.remove('open'); }
 $('modal').addEventListener('click', e=>{ if(e.target===$('modal')) closeModal(); });
@@ -501,8 +545,12 @@ window.removeItem=async function(id){
   }catch(e){ toast('Error: '+e.message,4000); }
 };
 
-// restore session token
-if(token){ /* connect silently on next manage open */ }
+// auto-restore from localStorage — silently validate
+if(token){
+  ghGet(\`/repos/\${REPO}/contents/watchlist.json\`)
+    .then(()=>{ /* valid — will setConnected on next manage open */ })
+    .catch(()=>{ localStorage.removeItem('np_token'); token=''; });
+}
 
 load();
 </script>
