@@ -1,1811 +1,408 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Price Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>noice-proice</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0d0c16;--surface:#141220;--surface2:#1b1928;--surface3:#232135;
-  --border:#2c2a42;--border2:#3a3858;
-  --text:#eeedf8;--text2:#9896bf;--text3:#56547a;
-  --accent:#818cf8;--accent-bg:rgba(129,140,248,0.1);--accent-border:rgba(129,140,248,0.3);
-  --green:#4ade80;--green-bg:rgba(74,222,128,0.08);
-  --amber:#fbbf24;--amber-bg:rgba(251,191,36,0.08);
-  --red:#f87171;--red-bg:rgba(248,113,113,0.08);
-  --blue:#60a5fa;--blue-bg:rgba(96,165,250,0.1);
-  --r:10px;--r-lg:16px;--r-xl:20px;
-}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;line-height:1.5}
-
-/* ── Auth ── */
-.auth-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem}
-.auth-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-xl);padding:2.5rem;max-width:420px;width:100%}
-.auth-icon{font-size:36px;margin-bottom:1rem}
-.auth-title{font-size:22px;font-weight:700;letter-spacing:-.3px;margin-bottom:6px}
-.auth-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:1.75rem}
-.auth-label{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
-.auth-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;padding:11px 14px;margin-bottom:12px;transition:border-color .15s}
-.auth-input:focus{outline:none;border-color:var(--accent)}
-.auth-error{font-size:12px;color:var(--red);background:var(--red-bg);border:1px solid rgba(248,113,113,.2);border-radius:var(--r);padding:8px 12px;margin-bottom:12px;display:none}
-.auth-success{font-size:12px;color:var(--green);background:var(--green-bg);border:1px solid rgba(74,222,128,.2);border-radius:var(--r);padding:8px 12px;margin-bottom:12px;display:none}
-.auth-divider{display:flex;align-items:center;gap:10px;margin:1.25rem 0;color:var(--text3);font-size:11px}
-.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.auth-link{background:none;border:none;color:var(--text2);cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;text-decoration:underline;padding:0;margin-top:10px;display:block;text-align:center}
-.auth-link:hover{color:var(--text)}
-
-/* ── Modal ── */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;display:none;align-items:center;justify-content:center;padding:1rem}
-.modal-overlay.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-xl);padding:2rem;max-width:500px;width:100%;max-height:90vh;overflow-y:auto}
-.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
-.modal-title{font-size:16px;font-weight:700}
-.modal-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;padding:2px 6px}
-.modal-close:hover{color:var(--text)}
-.msec{margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
-.msec:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.msec-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.m-lbl{display:block;font-size:11px;color:var(--text3);margin-bottom:4px}
-.m-input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;padding:9px 12px;margin-bottom:8px}
-.m-input:focus{outline:none;border-color:var(--accent)}
-.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:99px;font-weight:500}
-.status-pill.ok{background:var(--green-bg);color:var(--green)}
-.status-pill.missing{background:var(--surface2);color:var(--text3)}
-
-/* ── App ── */
-#app{display:none}
-.wrap{max-width:1100px;margin:0 auto;padding:1.5rem 1rem 4rem}
-.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;gap:12px;flex-wrap:wrap;padding-bottom:1.25rem;border-bottom:1px solid var(--border)}
-.hdr-l{display:flex;align-items:center;gap:12px}
-.hdr-brand-icon{width:38px;height:38px;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.hdr-title{font-size:18px;font-weight:700;letter-spacing:-.3px}
-.hdr-sub{font-size:12px;color:var(--text3);margin-top:2px}
-.hdr-r{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.sync-pill{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:4px 10px}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);transition:background .3s;flex-shrink:0}
-.sync-dot.ok{background:var(--green)}
-.sync-dot.syncing{background:var(--amber);animation:pulse 1s infinite}
-.sync-dot.error{background:var(--red)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── Buttons ── */
-.btn{border:1px solid var(--border2);border-radius:var(--r);background:transparent;color:var(--text2);cursor:pointer;padding:8px 16px;font-size:13px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s;white-space:nowrap}
-.btn:hover{background:var(--surface2);color:var(--text)}
-.btn:disabled{opacity:.35;cursor:default}
-.btn.pri{background:var(--accent);color:#fff;border-color:transparent;font-weight:600}
-.btn.pri:hover:not(:disabled){background:#6d76e8}
-.btn.sm{padding:6px 13px;font-size:12px}
-.btn.full{width:100%;padding:12px;margin-top:4px}
-
-/* ── Dashboard tiles ── */
-.dash{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.5rem}
-@media(max-width:850px){.dash{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:460px){.dash{grid-template-columns:repeat(2,1fr)}}
-.dc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 16px;cursor:pointer;transition:all .2s;user-select:none}
-.dc:hover{border-color:var(--border2);background:var(--surface2)}
-.dc.hl{border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.03)}
-.dc.tile-active{border-color:var(--accent)!important;background:var(--accent-bg)!important}
-.dc.tile-active.hl{border-color:rgba(74,222,128,.5)!important;background:rgba(74,222,128,.1)!important}
-.dc.tile-amber-active{border-color:rgba(251,191,36,.5)!important;background:rgba(251,191,36,.07)!important}
-.dc.tile-red-active{border-color:rgba(248,113,113,.5)!important;background:rgba(248,113,113,.07)!important}
-.dc.tile-gold-active{border-color:rgba(251,191,36,.5)!important;background:rgba(251,191,36,.06)!important}
-.dc-val{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;line-height:1}
-.dc-lbl{font-size:10px;color:var(--text3);margin-top:7px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
-.dc-sub{font-size:9px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-/* ── Progress ── */
-#prog-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:1rem;display:none}
-.prog-top{display:flex;justify-content:space-between;margin-bottom:8px}
-.prog-lbl{font-size:12px;color:var(--text2)}
-.prog-pct{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text3)}
-.prog-track{height:3px;background:var(--border2);border-radius:2px;overflow:hidden}
-.prog-fill{height:100%;background:var(--green);border-radius:2px;transition:width .5s}
-
-/* ── Add panel ── */
-#add-panel{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px;margin-bottom:1.5rem;display:none}
-.fg1{display:grid;grid-template-columns:1fr;margin-bottom:10px}
-.fg3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:10px}
-@media(max-width:540px){.fg3{grid-template-columns:1fr}}
-.field label{display:block;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
-.field input,.field select{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:13px;font-family:'Inter',sans-serif;padding:9px 12px}
-.field input:focus,.field select:focus{outline:none;border-color:var(--accent)}
-.field input::placeholder{color:var(--text3)}
-.form-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
-.lookup-loading{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--blue);padding:8px 0}
-.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-
-/* ── Toolbar ── */
-.toolbar{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
-.fb{border:1px solid var(--border);border-radius:99px;background:transparent;color:var(--text3);cursor:pointer;padding:5px 13px;font-size:12px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s}
-.fb:hover{color:var(--text);border-color:var(--border2)}
-.fb.active{background:var(--surface2);border-color:var(--border2);color:var(--text)}
-.search-input{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:12px;font-family:'Inter',sans-serif;padding:6px 12px;width:180px;margin-left:auto}
-.search-input:focus{outline:none;border-color:var(--accent)}
-.search-input::placeholder{color:var(--text3)}
-/* Sort bar */
-.sort-bar{display:flex;align-items:center;gap:6px;margin-bottom:1rem;flex-wrap:wrap}
-.sort-lbl{font-size:11px;color:var(--text3);font-weight:500;margin-right:2px;white-space:nowrap}
-.sb{border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text3);cursor:pointer;padding:4px 11px;font-size:11px;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s;white-space:nowrap}
-.sb:hover{color:var(--text);border-color:var(--border2)}
-.sb.active{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent)}
-
-/* ── Items ── */
-.items-grid{display:flex;flex-direction:column;gap:8px}
-.item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;transition:border-color .2s}
-.item-card:hover{border-color:var(--border2)}
-.item-row{display:grid;grid-template-columns:4px 1fr auto;cursor:pointer;align-items:stretch}
-.accent{width:4px;align-self:stretch;transition:background .3s}
-.accent.good{background:var(--green)}.accent.close{background:var(--amber)}.accent.over{background:var(--red)}
-.accent.none,.accent.checking,.accent.error{background:var(--border)}
-.item-inner{display:flex;align-items:center;gap:14px;padding:16px 18px;min-width:0}
-.item-img{width:48px;height:48px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.item-img img.prod{width:48px;height:48px;object-fit:cover}
-.item-img img.fav{width:24px;height:24px;object-fit:contain}
-.item-img .ph{font-size:22px;opacity:.3}
-.item-info{min-width:0;flex:1}
-.item-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px}
-.item-meta{font-size:11px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item-stxt{font-size:11px;margin-top:4px}
-.item-stxt.checking{color:var(--blue)}.item-stxt.error{color:var(--red)}.item-stxt.ok{color:var(--text3)}
-.item-prices{padding:16px 18px;display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;min-width:165px}
-@media(max-width:500px){.item-prices{min-width:120px}}
-.price-now{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px}
-.price-now.good{color:var(--green)}.price-now.close{color:var(--amber)}.price-now.over{color:var(--red)}.price-now.none{color:var(--text2)}
-.price-tgt{font-size:11px;color:var(--text3)}
-.badge{font-size:10px;padding:3px 9px;border-radius:99px;font-weight:600;white-space:nowrap}
-.badge.good{background:var(--green-bg);color:var(--green)}.badge.close{background:var(--amber-bg);color:var(--amber)}
-.badge.over{background:var(--red-bg);color:var(--red)}.badge.none{background:var(--surface2);color:var(--text3)}
-.badge.checking{background:var(--blue-bg);color:var(--blue)}.badge.error{background:var(--red-bg);color:var(--red)}
-.item-detail{border-top:1px solid var(--border);padding:18px;display:none;background:var(--surface2)}
-.item-detail.open{display:block}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;margin-bottom:0}
-@media(max-width:620px){.detail-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:400px){.detail-grid{grid-template-columns:1fr}}
-.detail-grid > div{padding:0 16px}
-.detail-grid > div:first-child{padding-left:0}
-.detail-grid > div:last-child{padding-right:0}
-.detail-grid > div + div{border-left:1px solid var(--border)}
-.dlbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px}
-.hist-table{width:100%;border-collapse:collapse;font-size:11px;font-family:'JetBrains Mono',monospace}
-.hist-table th{color:var(--text3);font-weight:400;text-align:left;padding:3px 0;border-bottom:1px solid var(--border)}
-.hist-table td{padding:5px 0;color:var(--text2);border-bottom:1px solid var(--border)}
-.hist-table tbody tr:first-child td{color:var(--text);font-weight:500}
-.hist-table tbody tr:last-child td{border-bottom:none}
-.sparkwrap{height:90px}
-.ps-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border)}
-.ps-row:last-child{border-bottom:none}
-.ps-l{color:var(--text3)}.ps-v{font-family:'JetBrains Mono',monospace;font-weight:500}
-.ps-v.g{color:var(--green)}.ps-v.r{color:var(--red)}
-.det-actions{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px;border-top:1px solid var(--border);background:var(--surface);margin:0 -18px -18px}
-.notif-bar{background:var(--blue-bg);border:1px solid rgba(96,165,250,.2);border-radius:var(--r);padding:10px 14px;margin-bottom:1rem;font-size:12px;color:var(--blue);display:flex;align-items:center;justify-content:space-between;gap:8px}
-.empty{text-align:center;padding:4rem 2rem;color:var(--text3)}
-.empty-icon{font-size:40px;margin-bottom:12px;opacity:.4}
-.empty-title{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:6px}
-.empty-desc{font-size:13px;line-height:1.7}
-.empty-action{margin-top:16px}
-#toast{position:fixed;bottom:20px;right:20px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 16px;font-size:13px;color:var(--text);display:none;z-index:200;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.6)}
-.sec-lbl{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-.active-filter-tag{font-size:10px;color:var(--accent);background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:99px;padding:1px 8px;margin-left:6px;font-weight:500;text-transform:none;letter-spacing:0}
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-
-/* ── Bulk select ── */
-.item-card.selected{border-color:var(--blue)!important;background:rgba(96,165,250,0.04)}
-.item-cb{width:18px;height:18px;border-radius:5px;border:2px solid var(--border2);background:var(--surface2);flex-shrink:0;display:none;align-items:center;justify-content:center;margin-right:2px;transition:all .15s}
-.item-cb.checked{background:var(--blue);border-color:var(--blue)}
-.item-cb::after{content:'✓';font-size:11px;color:#fff;display:none;font-weight:700}
-.item-cb.checked::after{display:block}
-.bulk-mode .item-cb{display:flex}
-.bulk-bar{background:var(--surface);border:1px solid var(--border2);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:1rem;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.bulk-bar.visible{display:flex}
-.bulk-info{font-size:13px;font-weight:500}
-.bulk-info span{color:var(--blue)}
-.bulk-actions-row{display:flex;gap:6px;flex-wrap:wrap}
-
-/* ── Best deal ── */
-.item-card.best-deal{border-color:rgba(251,191,36,0.35)!important}
-.best-deal-badge{font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(251,191,36,0.12);color:var(--amber);font-weight:600;white-space:nowrap}
-
-/* ── Mini sparkline ── */
-.mini-spark{display:flex;align-items:center;margin-top:4px}
-.mini-spark svg{display:block}
-
-/* ── Source badge ── */
-.src-badge{font-size:9px;padding:2px 6px;border-radius:99px;font-weight:600;white-space:nowrap}
-.src-badge.prices-api{background:rgba(129,140,248,.12);color:var(--accent)}
-.src-badge.ai{background:var(--surface2);color:var(--text3)}
-
-abbr{text-decoration:underline dotted;text-underline-offset:2px;cursor:help}
-/* check mode toggle */
-.mode-row{display:flex;align-items:center;gap:6px;padding:10px 18px;border-top:1px solid var(--border);background:var(--surface);margin:0 -18px;flex-wrap:wrap}
-.mode-lbl{font-size:11px;color:var(--text3);font-weight:500;white-space:nowrap}
-.mode-btn{border:1px solid var(--border2);border-radius:99px;background:transparent;color:var(--text3);cursor:pointer;padding:3px 11px;font-size:11px;font-weight:500;font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
-.mode-btn:hover{color:var(--text);border-color:var(--border2)}
-.mode-btn.active-auto{background:var(--surface2);border-color:var(--border2);color:var(--text)}
-.mode-btn.active-ai{background:var(--amber-bg);border-color:rgba(251,191,36,.35);color:var(--amber)}
-.mode-btn.active-live{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent)}
-.mode-tag{font-size:9px;padding:1px 6px;border-radius:99px;font-weight:700;white-space:nowrap;margin-left:2px}
-.mode-tag.auto{background:var(--surface2);color:var(--text3)}
-.mode-tag.ai{background:var(--amber-bg);color:var(--amber)}
-.mode-tag.live{background:var(--accent-bg);color:var(--accent)}
-/* source badges in history */
-.src-col{width:54px;text-align:right!important}
-.hsrc{display:inline-block;font-size:9px;padding:1px 5px;border-radius:99px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
-.hsrc.live{background:rgba(129,140,248,.15);color:var(--accent)}
-.hsrc.ai{background:rgba(251,191,36,.12);color:var(--amber)}
-.hsrc.unknown{background:var(--surface2);color:var(--text3)}
-/* history management */
-.hist-manage-mode .hist-cb-col{display:table-cell!important}
-.hist-cb-col{display:none;width:20px;padding-right:4px!important}
-.hist-cb{width:14px;height:14px;cursor:pointer;accent-color:var(--accent)}
-.hist-table tr.hist-selected td{background:rgba(129,140,248,0.06)}
-.hist-table tr.hist-bad td{background:rgba(248,113,113,0.06)}
-.hist-manage-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
-.hist-count{font-size:11px;color:var(--text3)}
+  :root {
+    --bg:       #f5f5f5;
+    --surface:  #ffffff;
+    --border:   #e5e7eb;
+    --text:     #111827;
+    --muted:    #6b7280;
+    --accent:   #4f46e5;
+    --green:    #16a34a;
+    --green-bg: #f0fdf4;
+    --green-bd: #bbf7d0;
+    --red:      #dc2626;
+    --amber:    #d97706;
+    --radius:   12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:       #0f0f0f;
+      --surface:  #1a1a1a;
+      --border:   #2a2a2a;
+      --text:     #f1f5f9;
+      --muted:    #94a3b8;
+      --accent:   #818cf8;
+      --green:    #4ade80;
+      --green-bg: #052e16;
+      --green-bd: #166534;
+      --red:      #f87171;
+      --amber:    #fbbf24;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+  }
+  header {
+    max-width: 900px;
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+  .last-run {
+    font-size: 12px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+  .stats {
+    max-width: 900px;
+    margin: 0 auto 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .stat-val   { font-size: 22px; font-weight: 600; }
+  .grid {
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    transition: box-shadow .15s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+  .card.target-hit {
+    border-color: var(--green-bd);
+    background: linear-gradient(var(--surface) 0%, var(--green-bg) 100%);
+  }
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .card-name {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .card-name a { color: inherit; text-decoration: none; }
+  .card-name a:hover { color: var(--accent); }
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 99px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-green  { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+  .badge-muted  { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+  .badge-err    { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+  @media (prefers-color-scheme: dark) {
+    .badge-err  { background: #1c0408; color: #f87171; border-color: #450a0a; }
+  }
+  .price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .price-current {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+  .price-current.green { color: var(--green); }
+  .trend {
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .trend.down { color: var(--green); }
+  .trend.up   { color: var(--red); }
+  .trend.flat { color: var(--muted); }
+  .target-line {
+    font-size: 11px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .target-line .hit { color: var(--green); font-weight: 600; }
+  .sparkline-wrap { height: 36px; }
+  sparkline-wrap svg { display: block; }
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .loading {
+    text-align: center;
+    padding: 80px 16px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .error-state {
+    text-align: center;
+    padding: 60px 16px;
+    color: var(--muted);
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .error-state h2 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+  .error-state p  { font-size: 13px; line-height: 1.6; }
+  .sort-bar {
+    max-width: 900px;
+    margin: 0 auto 16px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .sort-btn {
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .sort-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .notes { font-size: 11px; color: var(--muted); }
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════
-     ⚠️  REPLACE THESE TWO VALUES BEFORE UPLOADING
-     ══════════════════════════════════════════ -->
-<script>
-const SUPABASE_URL  = 'https://lszmlbspryvsiwbbfvdq.supabase.co';
-const SUPABASE_ANON = 'sb_publishable_YDqoWsOW6kuhCcbyeTTAdQ_dS_pngV1';
-</script>
+<header>
+  <div class="logo">noice<span>-</span>proice</div>
+  <div class="last-run" id="last-run">loading…</div>
+</header>
 
-<!-- ── Sign in screen ── -->
-<div class="auth-wrap" id="screen-signin">
-  <div class="auth-card">
-    <div class="auth-icon">🏷️</div>
-    <div class="auth-title">Price Tracker</div>
-    <div class="auth-desc">Sign in to access your wishlist from any device.</div>
-    <label class="auth-label">Email</label>
-    <input class="auth-input" id="si-email" type="email" placeholder="you@example.com" autocomplete="email"/>
-    <label class="auth-label">Password</label>
-    <input class="auth-input" id="si-pass" type="password" placeholder="••••••••••••" autocomplete="current-password"/>
-    <div class="auth-error" id="si-error"></div>
-    <button class="btn pri full" id="si-btn">Sign in →</button>
-    <div class="auth-divider">no account yet?</div>
-    <button class="btn full" id="si-to-signup">Create account →</button>
-  </div>
+<div class="stats" id="stats" hidden>
+  <div class="stat"><div class="stat-label">Watching</div><div class="stat-val" id="s-total">—</div></div>
+  <div class="stat"><div class="stat-label">Below target</div><div class="stat-val" id="s-target" style="color:var(--green)">—</div></div>
+  <div class="stat"><div class="stat-label">Dropped today</div><div class="stat-val" id="s-drops" style="color:var(--accent)">—</div></div>
+  <div class="stat"><div class="stat-label">Errors</div><div class="stat-val" id="s-errors" style="color:var(--amber)">—</div></div>
 </div>
 
-<!-- ── Sign up screen ── -->
-<div class="auth-wrap" id="screen-signup" style="display:none">
-  <div class="auth-card">
-    <div class="auth-icon">🏷️</div>
-    <div class="auth-title">Create account</div>
-    <div class="auth-desc">Your wishlist will sync across all your devices automatically.</div>
-    <label class="auth-label">Email</label>
-    <input class="auth-input" id="su-email" type="email" placeholder="you@example.com" autocomplete="email"/>
-    <label class="auth-label">Password</label>
-    <input class="auth-input" id="su-pass" type="password" placeholder="choose a password" autocomplete="new-password"/>
-    <label class="auth-label">Confirm password</label>
-    <input class="auth-input" id="su-pass2" type="password" placeholder="confirm password" autocomplete="new-password"/>
-    <div class="auth-error" id="su-error"></div>
-    <div class="auth-success" id="su-success"></div>
-    <button class="btn pri full" id="su-btn">Create account →</button>
-    <button class="auth-link" id="su-to-signin">← Back to sign in</button>
-  </div>
+<div class="sort-bar" id="sort-bar" hidden>
+  <span style="font-size:12px;color:var(--muted);">Sort:</span>
+  <button class="sort-btn active" data-sort="name">A → Z</button>
+  <button class="sort-btn" data-sort="price-low">Price ↑</button>
+  <button class="sort-btn" data-sort="price-high">Price ↓</button>
+  <button class="sort-btn" data-sort="target">Targets first</button>
+  <button class="sort-btn" data-sort="drop">Biggest drop</button>
 </div>
 
-<!-- ── Settings modal ── -->
-<div class="modal-overlay" id="settings-modal">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title">⚙ Settings</div>
-      <button class="modal-close" id="modal-close">✕</button>
-    </div>
-    <div class="msec">
-      <div class="msec-title">Account</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div>
-          <div style="font-size:13px;font-weight:500" id="settings-email">–</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">Synced across all devices</div>
-        </div>
-        <button class="btn sm" id="btn-signout">Sign out</button>
-      </div>
-    </div>
-    <div class="msec">
-      <div class="msec-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span>PricesAPI key <span style="font-size:10px;background:var(--green-bg);color:var(--green);border-radius:99px;padding:1px 7px;font-weight:600">free tier</span></span>
-        <span id="api-usage-display" style="font-size:11px;font-weight:400"></span>
-      </div>
-      <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:8px">
-        Real-time AU price data — no AI needed. Free 1,000 calls/month.<br>
-        Get your key at <a href="https://pricesapi.io/signup" target="_blank" style="color:var(--text2)">pricesapi.io/signup</a> — used first, AI is fallback only.
-      </div>
-      <label class="m-lbl">API key</label>
-      <input class="m-input" id="set-prices-key" type="password" placeholder="pricesapi_..."/>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="status-pill missing" id="prices-pill">Not set</span>
-        <span style="font-size:11px;color:var(--text3)">Free for ~2 checks/day on 10 items</span>
-      </div>
-      <button class="btn sm pri" id="btn-save-priceskey" style="margin-top:10px">Save key</button>
-    </div>
-    <div class="msec">
-      <div class="msec-title">OpenRouter API key</div>
-      <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:8px">
-        Used for price checking. Get one free at <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--text2)">openrouter.ai/keys</a><br>
-        Stored securely in your account — enter once, works on all devices.
-      </div>
-      <label class="m-lbl">API key</label>
-      <input class="m-input" id="set-or-key" type="password" placeholder="sk-or-v1-..."/>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span class="status-pill missing" id="or-pill">Not set</span>
-        <span style="font-size:11px;color:var(--text3)">~$0.0004 per price check (Gemini 2.5 Flash)</span>
-      </div>
-      <button class="btn sm pri" id="btn-save-orkey" style="margin-top:10px">Save API key</button>
-    </div>
-    <div class="msec">
-      <div class="msec-title">Preferred retailers</div>
-      <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:10px">
-        Used when searching for competitors. Your list is checked first, then general Australian retailers.
-      </div>
-      <div id="retailers-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center">
-        <input class="m-input" id="inp-retailer-name" placeholder="JB Hi-Fi" style="margin:0"/>
-        <input class="m-input" id="inp-retailer-url" placeholder="jbhifi.com.au" style="margin:0"/>
-        <button class="btn sm" id="btn-add-retailer">Add</button>
-      </div>
-    </div>
-    <div class="msec">
-      <div class="msec-title">Email alerts</div>
-      <div style="font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:8px">
-        Get an email when a tracked item drops to your target price. Uses your account email automatically.<br><br>
-        Requires the auto-check Edge Function to be set up — see the setup guide below.
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <span style="font-size:13px">Daily auto-check + email alerts</span>
-        <button class="btn sm" id="btn-toggle-emails" onclick="toggleGlobalAlerts()">Enable</button>
-      </div>
-      <div style="font-size:11px;color:var(--text3);margin-top:8px">Toggle alerts per item by clicking 🔕 on each item in your watchlist.</div>
-    </div>
-    <div class="msec">
-      <div class="msec-title">Backup</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn sm" id="modal-export">↓ Export JSON</button>
-        <button class="btn sm" id="modal-import">↑ Import JSON</button>
-      </div>
-    </div>
-    <div class="msec">
-      <div class="msec-title">Danger zone</div>
-      <button class="btn sm" id="btn-clear-all" style="color:var(--red)">Clear all data</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── Main app ── -->
-<div id="app">
-  <div class="wrap">
-    <div class="hdr">
-      <div class="hdr-l">
-        <div class="hdr-brand-icon">🏷️</div>
-        <div>
-          <div class="hdr-title">Price Tracker</div>
-          <div class="hdr-sub" id="mem-sub">Loading...</div>
-        </div>
-      </div>
-      <div class="hdr-r">
-        <div class="sync-pill">
-          <div class="sync-dot ok" id="sync-dot"></div>
-          <span id="sync-lbl">synced</span>
-        </div>
-        <button class="btn sm" id="btn-settings">⚙ Settings</button>
-        <button class="btn sm" id="btn-check-all">↻ Check all</button>
-        <button class="btn sm pri" id="btn-show-add">+ Add item</button>
-      </div>
-    </div>
-
-    <div id="notif-bar" class="notif-bar" style="display:none">
-      <span>Enable browser notifications to get alerted on price drops.</span>
-      <button class="btn sm" id="btn-notif">Enable</button>
-    </div>
-
-    <div class="dash">
-      <div class="dc" id="tile-all" onclick="tileClick('all','tile-all')"><div class="dc-val" id="d-total">0</div><div class="dc-lbl">Watching</div></div>
-      <div class="dc hl" id="tile-good" onclick="tileClick('good','tile-good')"><div class="dc-val" id="d-good" style="color:var(--green)">0</div><div class="dc-lbl">At target</div></div>
-      <div class="dc" id="tile-close" onclick="tileClick('close','tile-close')"><div class="dc-val" id="d-close" style="color:var(--amber)">0</div><div class="dc-lbl">Within 10%</div></div>
-      <div class="dc" id="tile-over" onclick="tileClick('over','tile-over')"><div class="dc-val" id="d-over" style="color:var(--red)">0</div><div class="dc-lbl">Above target</div></div>
-      <div class="dc" id="tile-save" onclick="tileClick('all','tile-all')"><div class="dc-val" id="d-save" style="font-size:20px;color:var(--text2)">–</div><div class="dc-lbl">Still to save</div></div>
-      <div class="dc" id="tile-best" onclick="tileClick('best','tile-best')" style="border-color:rgba(251,191,36,0.2);background:rgba(251,191,36,0.03)"><div class="dc-val" id="d-bestdeal" style="font-size:20px;color:var(--amber)">–</div><div class="dc-lbl">⭐ Best deal</div><div class="dc-sub" id="d-bestdeal-name">–</div></div>
-    </div>
-
-    <div id="prog-wrap">
-      <div class="prog-top"><div class="prog-lbl" id="prog-lbl">Checking...</div><div class="prog-pct" id="prog-pct">0%</div></div>
-      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-    </div>
-
-    <!-- Add panel — step 1 -->
-    <div id="add-panel">
-      <div id="add-step1">
-        <h3 style="font-size:14px;font-weight:600;margin-bottom:14px">Add to watchlist</h3>
-        <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:6px">
-          <div class="field" style="flex:1;margin:0">
-            <label>Product URL</label>
-            <input id="inp-url" placeholder="https://www.jbhifi.com.au/products/..." style="margin-top:5px"/>
-          </div>
-          <button class="btn sm pri" id="btn-lookup" style="flex-shrink:0;height:38px">Look up →</button>
-        </div>
-        <div style="font-size:11px;color:var(--text3)">Paste any product URL — AI fills in the details automatically.</div>
-        <div class="form-foot" style="margin-top:12px">
-          <button class="btn sm" id="btn-cancel">Cancel</button>
-          <button class="btn sm" id="btn-manual">Fill in manually</button>
-        </div>
-      </div>
-
-      <!-- Add panel — step 2 -->
-      <div id="add-step2" style="display:none">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-          <div id="add-preview-img" style="width:48px;height:48px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:22px;opacity:.4">🛍️</div>
-          <div>
-            <div style="font-size:14px;font-weight:600">Review &amp; confirm</div>
-            <div style="font-size:11px;color:var(--text3);margin-top:2px">AI-filled — edit anything before saving</div>
-          </div>
-        </div>
-        <div class="fg1"><div class="field"><label>Product name</label><input id="inp-name" placeholder="Product name"/></div></div>
-        <div class="fg3">
-          <div class="field"><label>Notes / model number</label><input id="inp-notes" placeholder="Model, variant..."/></div>
-          <div class="field"><label>Target price (AUD)</label><input id="inp-target" type="number" placeholder="e.g. 350"/></div>
-          <div class="field"><label>Category</label>
-            <select id="inp-cat">
-              <option value="">— none —</option>
-              <option>Headphones</option><option>TV</option><option>Laptop</option>
-              <option>Phone</option><option>Tablet</option><option>Gaming</option>
-              <option>Appliance</option><option>Camera</option><option>Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-foot">
-          <button class="btn sm" id="btn-back-step1">← Change URL</button>
-          <button class="btn sm" id="btn-cancel2">Cancel</button>
-          <button class="btn sm pri" id="btn-save">Add &amp; check price</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="bulk-bar" class="bulk-bar">
-      <div class="bulk-info"><span id="bulk-count">0</span> item<span id="bulk-plural">s</span> selected</div>
-      <div class="bulk-actions-row">
-        <button class="btn sm" id="bulk-check">↻ Check selected</button>
-        <button class="btn sm" id="bulk-delete" style="color:var(--red)">✕ Delete selected</button>
-        <button class="btn sm" id="bulk-cancel">Cancel</button>
-      </div>
-    </div>
-
-    <div class="toolbar">
-      <button class="fb active" data-f="all">All</button>
-      <button class="fb" data-f="good">At target</button>
-      <button class="fb" data-f="close">Close</button>
-      <button class="fb" data-f="over">Above</button>
-      <button class="fb" data-f="none">Unchecked</button>
-      <button class="fb" id="btn-bulk-mode">☑ Select</button>
-      <input class="search-input" id="search-inp" placeholder="Search..."/>
-    </div>
-
-    <div class="sort-bar">
-      <span class="sort-lbl">Sort:</span>
-      <button class="sb active" id="sb-recent" onclick="setSort('recent','sb-recent')">Recently checked</button>
-      <button class="sb" id="sb-phl" onclick="setSort('phl','sb-phl')">Price high→low</button>
-      <button class="sb" id="sb-plh" onclick="setSort('plh','sb-plh')">Price low→high</button>
-      <button class="sb" id="sb-az" onclick="setSort('az','sb-az')">A→Z</button>
-      <button class="sb" id="sb-disc" onclick="setSort('disc','sb-disc')">Biggest discount</button>
-    </div>
-
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div class="sec-lbl" id="count-lbl" style="margin-bottom:0">Watchlist</div>
-      <button class="btn sm" id="btn-expand-all">Expand all</button>
-    </div>
-    <div id="items-grid" class="items-grid"></div>
-  </div>
-</div>
-
-<input type="file" id="import-file" accept=".json" style="display:none"/>
-<div id="toast"></div>
+<main id="main">
+  <div class="loading">Loading prices…</div>
+</main>
 
 <script>
-// ── Init Supabase ──
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-
-// ── Storage keys — NEVER change these ──
-const WL_KEY = 'pt_wl_v6';
-const PH_KEY = id => 'pt_ph_v6_' + id;
-
-let items=[], histories={}, checking=new Set(), expanded=new Set(), cstatus={};
-let orKey='', currentUser=null;
-let activeFilter='all', searchQ='';
-let syncDebounce=null, pendingImageUrl=null;
-let findingRetailers=new Set();
-let bulkMode=false, selectedItems=new Set();
-let sortMode='recent', tileFilter='all';
-const histManage=new Set();
-const histSel={};
-let pricesApiKey='';
-const fxCache={rates:{},fetchedAt:0};
-
-async function toAUD(amount, currency){
-  if(!currency||currency==='AUD') return {aud:amount, original:null};
-  const cur=currency.toUpperCase();
-  // Cache rates for 1 hour
-  if(!fxCache.rates[cur]||Date.now()-fxCache.fetchedAt>3600000){
-    try{
-      const res=await fetch(`https://api.frankfurter.app/latest?from=${cur}&to=AUD`);
-      const data=await res.json();
-      if(data.rates?.AUD){
-        fxCache.rates[cur]=data.rates.AUD;
-        fxCache.fetchedAt=Date.now();
-      }
-    }catch(e){ return {aud:amount, original:null}; }
-  }
-  const rate=fxCache.rates[cur];
-  if(!rate) return {aud:amount, original:null};
-  return {aud:parseFloat((amount*rate).toFixed(2)), original:{amount, currency:cur, rate}};
-}
-
-const CURRENCY_SYMBOLS={'GBP':'£','EUR':'€','USD':'$','JPY':'¥','CAD':'CA$','NZD':'NZ$','SGD':'S$'};
-function fmtOrig(original){
-  if(!original) return '';
-  const sym=CURRENCY_SYMBOLS[original.currency]||original.currency+' ';
-  return `${sym}${parseFloat(original.amount).toFixed(2)}`;
-}
-
-const DEFAULT_RETAILERS=[
-  {name:'JB Hi-Fi',url:'jbhifi.com.au'},
-  {name:'Kogan',url:'kogan.com'},
-  {name:'Amazon AU',url:'amazon.com.au'},
-  {name:'Harvey Norman',url:'harveynorman.com.au'},
-  {name:'Bing Lee',url:'binglee.com.au'},
-  {name:'Officeworks',url:'officeworks.com.au'},
-  {name:'Chemist Warehouse',url:'chemistwarehouse.com.au'},
-  {name:'Big W',url:'bigw.com.au'},
-  {name:'Target AU',url:'target.com.au'},
-  {name:'Catch',url:'catch.com.au'},
-];
-let retailers=[];
-
-// ── Helpers ──
-const uid   = () => Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-const esc   = s  => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const fmtP  = p  => p==null?'–':'$'+parseFloat(p).toFixed(2);
-const fmtA  = p  => p==null?'–':'AUD '+fmtP(p);
-const domain= url=> { try{return new URL(url).hostname.replace('www.','')}catch{return url}};
-const fav   = url=> { try{const h=new URL(url).hostname;return`https://icons.duckduckgo.com/ip3/${h}.ico`}catch{return''}};
-
-function relTime(ts){
-  if(!ts) return 'never';
-  const m=Math.floor((Date.now()-ts)/60000);
-  if(m<2) return 'just now'; if(m<60) return m+'m ago';
-  const h=Math.floor(m/60); if(h<24) return h+'h ago';
-  return Math.floor(h/24)+'d ago';
-}
-function status(item){
-  if(item.currentPrice==null) return 'none';
-  const t=parseFloat(item.targetPrice); if(!t) return 'none';
-  if(item.currentPrice<=t) return 'good';
-  if(item.currentPrice<=t*1.1) return 'close';
-  return 'over';
-}
-function badgeLbl(st,id){
-  if(checking.has(id)) return 'checking...';
-  if(cstatus[id]==='error') return 'check failed';
-  if(st==='good') return '✓ at target';
-  if(st==='close') return 'close';
-  if(st==='over') return 'above target';
-  return 'not checked';
-}
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.style.display='block';
-  clearTimeout(t._t); t._t=setTimeout(()=>t.style.display='none',4000);
-}
-function showScreen(id){
-  ['screen-signin','screen-signup'].forEach(s=>{
-    document.getElementById(s).style.display=s===id?'flex':'none';
+// ── sparkline ─────────────────────────────────────────────────────────────────
+function sparkline(history, hit) {
+  if (!history || history.length < 2) return '';
+  const prices = history.map(h => h.price);
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+  const W = 120, H = 32, pad = 3;
+  const pts = prices.map((p, i) => {
+    const x = pad + (i / (prices.length - 1)) * (W - pad * 2);
+    const y = H - pad - ((p - min) / range) * (H - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
-  document.getElementById('app').style.display=id==='app'?'block':'none';
-}
-function setErr(id,msg){ const el=document.getElementById(id); el.textContent=msg; el.style.display=msg?'block':'none'; }
-function setSuccess(id,msg){ const el=document.getElementById(id); el.textContent=msg; el.style.display=msg?'block':'none'; }
-function setSyncStatus(state,label){
-  document.getElementById('sync-dot').className='sync-dot '+state;
-  document.getElementById('sync-lbl').textContent=label;
-}
-
-// ── Supabase data sync ──
-async function dbLoad(){
-  if(!currentUser) return;
-  setSyncStatus('syncing','loading...');
-  try{
-    const {data,error}=await sb.from('watchlist').select('*').eq('user_id',currentUser.id).single();
-    if(error&&error.code!=='PGRST116') throw error; // PGRST116 = no rows
-    if(data){
-      items=data.items||[];
-      histories=data.histories||{};
-      orKey=data.or_key||'';
-      pricesApiKey=data.prices_api_key||'';
-      retailers=data.retailers||[...DEFAULT_RETAILERS];
-    } else {
-      retailers=[...DEFAULT_RETAILERS];
-    }
-    setSyncStatus('ok','synced');
-  }catch(e){
-    setSyncStatus('error','load failed');
-    console.error('[dbLoad]',e);
-  }
-}
-async function dbSave(){
-  if(!currentUser) return;
-  setSyncStatus('syncing','saving...');
-  try{
-    const payload={user_id:currentUser.id,items,histories,or_key:orKey,prices_api_key:pricesApiKey,retailers,updated_at:new Date().toISOString()};
-    const {error}=await sb.from('watchlist').upsert(payload,{onConflict:'user_id'});
-    if(error) throw error;
-    setSyncStatus('ok','synced '+relTime(Date.now()));
-  }catch(e){
-    setSyncStatus('error','save failed');
-    console.error('[dbSave]',e);
-  }
-}
-function scheduleSave(){
-  clearTimeout(syncDebounce);
-  syncDebounce=setTimeout(dbSave,1200);
-}
-
-// ── Also keep or_key column — add it if needed ──
-// (The SQL below adds it safely — run once in Supabase SQL editor)
-// ALTER TABLE watchlist ADD COLUMN IF NOT EXISTS or_key text;
-
-// ── Auth ──
-async function doSignin(){
-  const email=document.getElementById('si-email').value.trim();
-  const pass=document.getElementById('si-pass').value;
-  setErr('si-error','');
-  if(!email||!pass){ setErr('si-error','Please enter your email and password'); return; }
-  const btn=document.getElementById('si-btn');
-  btn.disabled=true; btn.textContent='Signing in...';
-  const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
-  if(error){ setErr('si-error',error.message); btn.disabled=false; btn.textContent='Sign in →'; return; }
-  currentUser=data.user;
-  await bootApp();
-  btn.disabled=false; btn.textContent='Sign in →';
-}
-
-async function doSignup(){
-  const email=document.getElementById('su-email').value.trim();
-  const pass=document.getElementById('su-pass').value;
-  const pass2=document.getElementById('su-pass2').value;
-  setErr('su-error',''); setSuccess('su-success','');
-  if(!email||!pass){ setErr('su-error','Please fill in all fields'); return; }
-  if(pass.length<6){ setErr('su-error','Password must be at least 6 characters'); return; }
-  if(pass!==pass2){ setErr('su-error',"Passwords don't match"); return; }
-  const btn=document.getElementById('su-btn');
-  btn.disabled=true; btn.textContent='Creating account...';
-  const{data,error}=await sb.auth.signUp({email,password:pass});
-  if(error){ setErr('su-error',error.message); btn.disabled=false; btn.textContent='Create account →'; return; }
-  // If email confirmation is disabled in Supabase, user is logged in immediately
-  if(data.session){
-    currentUser=data.user;
-    await bootApp();
-  } else {
-    setSuccess('su-success','Account created! Check your email to confirm, then sign in.');
-  }
-  btn.disabled=false; btn.textContent='Create account →';
-}
-
-async function bootApp(){
-  showScreen('app');
-  document.getElementById('settings-email').textContent=currentUser?.email||'–';
-  await dbLoad();
-  updateORPill();
-  updatePricesApiPill();
-  render();
-  checkNotifPerm();
-  document.getElementById('mem-sub').textContent=`Signed in as ${currentUser?.email||'–'}`;
-}
-
-// ── OR key management ──
-function updateORPill(){
-  const pill=document.getElementById('or-pill');
-  pill.textContent=orKey?'Key saved ✓':'Not set';
-  pill.className='status-pill '+(orKey?'ok':'missing');
-  if(orKey) document.getElementById('set-or-key').value='••••••••';
-}
-
-// ── Spark chart ──
-function sparkSVG(id,W,H){
-  const ph=(histories[id]||[]).filter(p=>p.price!=null).slice(-30);
-  if(ph.length<2) return '<p style="font-size:11px;color:var(--text3)">Need 2+ checks for trend</p>';
-  const prices=ph.map(p=>p.price),mn=Math.min(...prices),mx=Math.max(...prices),rng=mx-mn||1,pad=8;
-  const pts=prices.map((p,i)=>{
-    const x=pad+(i/(prices.length-1))*(W-pad*2);
-    const y=pad+(1-(p-mn)/rng)*(H-pad*2-16);
-    return x.toFixed(1)+','+y.toFixed(1);
-  }).join(' ');
-  const item=items.find(x=>x.id===id);
-  const stroke=status(item)==='good'?'#4ade80':status(item)==='close'?'#fbbf24':'#f87171';
-  const last=pts.split(' ').pop().split(',');
-  const firstX=pts.split(' ')[0].split(',')[0];
-  const area=`M${firstX},${H-16} L${pts.split(' ').join(' L')} L${last[0]},${H-16} Z`;
-  const gid='g'+id.slice(-4);
-  // Date labels: first, middle, last
-  const dates=[ph[0],ph[Math.floor(ph.length/2)],ph[ph.length-1]];
-  const dateLabels=dates.map((p,i)=>{
-    const x=i===0?pad:i===1?(W/2):W-pad;
-    return `<text x="${x}" y="${H-2}" text-anchor="${i===0?'start':i===1?'middle':'end'}" fill="var(--text3)" font-size="9" font-family="Inter,sans-serif">${new Date(p.checkedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short'})}</text>`;
-  }).join('');
-  // Price labels: min and max
-  const maxPt=prices.map((p,i)=>({p,i})).reduce((a,b)=>b.p>a.p?b:a);
-  const maxX=pad+(maxPt.i/(prices.length-1))*(W-pad*2);
-  const maxY=pad+(1-(maxPt.p-mn)/rng)*(H-pad*2-16);
-  return`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:${H}px;overflow:visible">
-    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${stroke}" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="${stroke}" stop-opacity="0"/>
-    </linearGradient></defs>
-    <path d="${area}" fill="url(#${gid})"/>
-    <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-    ${prices.map((p,i)=>{
-      const cx=pad+(i/(prices.length-1))*(W-pad*2);
-      const cy=pad+(1-(p-mn)/rng)*(H-pad*2-16);
-      return`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${i===prices.length-1?3:1.5}" fill="${stroke}" opacity="${i===prices.length-1?1:0.5}"/>`;
-    }).join('')}
-    <text x="${(parseFloat(last[0])).toFixed(0)}" y="${(parseFloat(last[1])-6).toFixed(0)}" fill="${stroke}" font-size="9" font-family="JetBrains Mono,monospace" text-anchor="middle">$${prices[prices.length-1].toFixed(0)}</text>
-    ${dateLabels}
+  const color = hit ? '#16a34a' : '#6366f1';
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="overflow:visible">
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${pts[pts.length-1].split(',')[0]}" cy="${pts[pts.length-1].split(',')[1]}" r="2.5" fill="${color}"/>
   </svg>`;
 }
 
-function miniSparkSVG(id){
-  const ph=(histories[id]||[]).filter(p=>p.price!=null).slice(-12);
-  if(ph.length<2) return '';
-  const W=64,H=20,pad=2;
-  const prices=ph.map(p=>p.price),mn=Math.min(...prices),mx=Math.max(...prices),rng=mx-mn||1;
-  const pts=prices.map((p,i)=>{
-    const x=pad+(i/(prices.length-1))*(W-pad*2);
-    const y=pad+(1-(p-mn)/rng)*(H-pad*2);
-    return x.toFixed(1)+','+y.toFixed(1);
-  }).join(' ');
-  const item=items.find(x=>x.id===id);
-  const stroke=status(item)==='good'?'#4ade80':status(item)==='close'?'#fbbf24':'#f87171';
-  const last=pts.split(' ').pop().split(',');
-  return`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block">
-    <polyline points="${pts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
-    <circle cx="${last[0]}" cy="${last[1]}" r="2" fill="${stroke}"/>
-  </svg>`;
+// ── relative time ─────────────────────────────────────────────────────────────
+function relTime(iso) {
+  if (!iso) return '—';
+  const diff = Date.now() - new Date(iso).getTime();
+  const h = diff / 3_600_000;
+  if (h < 1)  return `${Math.round(h * 60)}m ago`;
+  if (h < 24) return `${Math.round(h)}h ago`;
+  return `${Math.round(h / 24)}d ago`;
 }
 
-// ── Render item ──
-function verdictStyle(v){
-  if(!v||v==='no data') return '';
-  if(v==='at historical low') return 'background:#E6F1FB;color:#0C447C';
-  if(v==='great time to buy') return 'background:var(--green-bg);color:var(--green)';
-  if(v==='good time to buy') return 'background:var(--green-bg);color:var(--green)';
-  if(v==='wait for better price') return 'background:var(--amber-bg);color:var(--amber)';
-  return '';
+function fmt(n) {
+  if (n == null) return '—';
+  return '$' + n.toLocaleString('en-AU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function renderItem(item, isBestDeal){
-  const st=status(item),isC=checking.has(item.id),isExp=expanded.has(item.id),isErr=cstatus[item.id]==='error';
-  const isSel=selectedItems.has(item.id);
-  const ph=(histories[item.id]||[]).filter(p=>p.price!=null);
-  const inManage=histManage.has(item.id);
-  if(!histSel[item.id]) histSel[item.id]=new Set();
-  const selSet=histSel[item.id];
-  const histRows=ph.slice().reverse().map((p,i)=>{
-    const isSel=selSet.has(p.checkedAt);
-    const isLatest=i===0;
-    return`<tr class="${isSel?'hist-selected':''}${isLatest?' hist-latest':''}">
-      <td class="hist-cb-col"><input type="checkbox" class="hist-cb" ${isSel?'checked':''} onchange="toggleHistEntry('${item.id}',${p.checkedAt},this.checked)" onclick="event.stopPropagation()"/></td>
-      <td>${new Date(p.checkedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short'})}</td>
-      <td>${new Date(p.checkedAt).toLocaleTimeString('en-AU',{hour:'2-digit',minute:'2-digit'})}</td>
-      <td>${fmtA(p.price)}${p.originalPrice?` <span style="color:var(--text3);font-size:10px">${fmtOrig(p.originalPrice)}</span>`:''}</td>
-      <td style="color:var(--text3)">${p.store?esc(p.store.slice(0,14)):''}</td>
-      <td class="src-col"><span class="hsrc ${p.source==='pricesapi'?'live':p.source==='ai'?'ai':'unknown'}">${p.source==='pricesapi'?'LIVE':p.source==='ai'?'AI':'?'}</span></td>
-      <td style="text-align:right;padding-right:4px">${p.url?`<a href="${p.url}" target="_blank" onclick="event.stopPropagation()" style="color:var(--text3);font-size:11px;text-decoration:none;padding:1px 5px;border:1px solid var(--border2);border-radius:4px;white-space:nowrap" title="${p.url}">↗</a>`:''}
-      </td>
-    </tr>`;
-  }).join('');
-  const pClass=isC||isErr?'none':st;
-  const lastSrc=(histories[item.id]||[]).slice(-1)[0]?.source;
-  const srcTag=!isC&&!isErr&&lastSrc?`<span class="src-badge ${lastSrc==='pricesapi'?'prices-api':'ai'}" title="${lastSrc==='pricesapi'?'Price from PricesAPI real-time data':'Price from AI — may be less accurate'}">${lastSrc==='pricesapi'?'⚡ live':'🤖 AI'}</span>`:'';
-  const modeTag=item.checkMode&&item.checkMode!=='auto'?`<span class="mode-tag ${item.checkMode}">${item.checkMode==='ai'?'🤖 AI only':'⚡ live only'}</span>`:'';
-  const sTxt=isC?(cstatus[item.id]||'searching...'):isErr?'Check failed — click Refresh to retry':`Checked ${relTime(item.lastChecked)}`;
-  const sCls=isC?'checking':isErr?'error':'ok';
-  const phPrices=ph.map(p=>p.price);
-  const lo=phPrices.length?Math.min(...phPrices):null;
-  const hi=phPrices.length?Math.max(...phPrices):null;
-  const diff=item.currentPrice!=null&&item.targetPrice?item.currentPrice-item.targetPrice:null;
-  const vStyle=verdictStyle(item.verdict);
-  const competitors=item.competitors||[];
+// ── card render ───────────────────────────────────────────────────────────────
+function renderCard(id, item) {
+  const price   = item.currentPrice;
+  const prev    = item.previousPrice;
+  const target  = item.targetPrice;
+  const hit     = price != null && target != null && price <= target;
+  const history = item.history || [];
 
-  // All-time low badge
-  const atlBadge=item.allTimeLow?`<span style="font-size:10px;padding:2px 7px;border-radius:99px;background:#E6F1FB;color:#0C447C;font-weight:600;white-space:nowrap">↓ low ${fmtP(item.allTimeLow)}</span>`:'';
+  const trend = (() => {
+    if (!price || !prev) return { cls: 'flat', arrow: '–', txt: '' };
+    const pct = ((price - prev) / prev * 100).toFixed(1);
+    if (price < prev) return { cls: 'down', arrow: '↓', txt: `${Math.abs(pct)}%` };
+    if (price > prev) return { cls: 'up',   arrow: '↑', txt: `${pct}%` };
+    return { cls: 'flat', arrow: '–', txt: '' };
+  })();
 
-  const f=fav(item.url);
-  const imgHtml=f?`<img class="fav" src="${f}" alt="" onerror="this.parentNode.innerHTML='<span class=ph>🛍️</span>'" loading="lazy"/>`:'<span class="ph">🛍️</span>';
+  const badgeHtml = item.lastError
+    ? `<span class="badge badge-err">error</span>`
+    : hit
+      ? `<span class="badge badge-green">below target</span>`
+      : `<span class="badge badge-muted">${item.source || 'unchecked'}</span>`;
 
-  const competitorRows=competitors.map(c=>`
-    <div class="ps-row" style="cursor:${c.url?'pointer':'default'}" onclick="${c.url?`window.open('${esc(c.url)}','_blank')`:''}">
-      <span class="ps-l">${esc(c.store)}${c.url?' ↗':''}</span>
-      <span class="ps-v ${c.price!=null&&item.currentPrice!=null&&c.price<item.currentPrice?'g':''}">${fmtA(c.price)}</span>
-    </div>`).join('');
+  const targetHtml = target
+    ? `<div class="target-line">
+        Target ${fmt(target)}
+        ${hit ? '<span class="hit">✓ hit</span>' : `· ${fmt(price && target ? price - target : null)} away`}
+       </div>`
+    : '';
 
-  // Mini sparkline
-  const miniSpark=ph.length>=2?`<div class="mini-spark">${miniSparkSVG(item.id)}</div>`:'';
-
-  // Last checked full timestamp
-  const lcFull=item.lastChecked?new Date(item.lastChecked).toLocaleString('en-AU',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'Never';
-
-  // Card click handler — bulk select vs expand
-  const cardClick=bulkMode?`toggleSelect('${item.id}')`:`toggleExp('${item.id}')`;
-
-  return`<div class="item-card${isBestDeal?' best-deal':''}${isSel?' selected':''}" data-id="${item.id}">
-    <div class="item-row" onclick="${cardClick}">
-      <div class="accent ${isC?'checking':isErr?'error':st}"></div>
-      <div class="item-inner">
-        ${bulkMode?`<div class="item-cb${isSel?' checked':''}" onclick="event.stopPropagation();toggleSelect('${item.id}')"></div>`:''}
-        <div class="item-img">${imgHtml}</div>
-        <div class="item-info">
-          <div class="item-name">${esc(item.name)}${item.category?` <span style="font-size:10px;color:var(--text3);font-weight:400">${esc(item.category)}</span>`:''}${isBestDeal&&!bulkMode?' <span class="best-deal-badge">⭐ best deal</span>':''}</div>
-          <div class="item-meta">${esc(domain(item.url))}${item.store?' · '+esc(item.store):''}${item.notes?' · '+esc(item.notes):''}</div>
-          <div class="item-stxt ${sCls}"><abbr title="${lcFull}">${sTxt}</abbr> ${srcTag}${modeTag}</div>
-        </div>
-      </div>
-      <div class="item-prices">
-        <div class="price-now ${pClass}">${isC?'…':fmtA(item.currentPrice)}</div>
-        ${!isC&&item.originalPrice?`<div style="font-size:11px;color:var(--text3)">${fmtOrig(item.originalPrice)}</div>`:''}
-        <div class="price-tgt">target ${fmtA(item.targetPrice)}</div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
-          <span class="badge ${isC?'checking':isErr?'error':st}">${badgeLbl(st,item.id)}</span>
-          ${!isC&&item.verdict&&item.verdict!=='no data'?`<span class="badge" style="${vStyle}">${item.verdict}</span>`:''}
-        </div>
-        ${!isC&&atlBadge?`<div style="margin-top:2px">${atlBadge}</div>`:''}
-        ${!isC&&miniSpark}
-      </div>
+  return `
+  <div class="card${hit ? ' target-hit' : ''}" id="card-${id}">
+    <div class="card-top">
+      <div class="card-name"><a href="${item.url}" target="_blank" rel="noopener">${item.name}</a></div>
+      ${badgeHtml}
     </div>
-    <div class="item-detail ${isExp&&!bulkMode?'open':''}">
-      <div class="detail-grid">
-        <div>
-          <div class="dlbl">Price history (${ph.length} checks)</div>
-          ${ph.length?`
-            <div class="hist-manage-bar">
-              ${inManage?`
-                <span class="hist-count">${selSet.size} selected</span>
-                <button class="btn sm" style="font-size:11px;padding:4px 10px;color:var(--red)" onclick="event.stopPropagation();deleteHistEntries('${item.id}')" ${selSet.size===0?'disabled':''}>✕ Delete selected</button>
-                <button class="btn sm" style="font-size:11px;padding:4px 10px" onclick="event.stopPropagation();selectAllHist('${item.id}',true)">Select all</button>
-                <button class="btn sm" style="font-size:11px;padding:4px 10px" onclick="event.stopPropagation();toggleHistManage('${item.id}')">Done</button>
-              `:`
-                <button class="btn sm" style="font-size:11px;padding:4px 10px" onclick="event.stopPropagation();toggleHistManage('${item.id}')">🗑 Manage history</button>
-              `}
-            </div>
-            <div style="max-height:${inManage?'260px':'180px'};overflow-y:auto">
-              <table class="hist-table${inManage?' hist-manage-mode':''}">
-                <thead><tr><th class="hist-cb-col"></th><th>Date</th><th>Time</th><th>Price</th><th>Store</th><th class="src-col">Source</th><th></th></tr></thead>
-                <tbody>${histRows}</tbody>
-              </table>
-            </div>
-          `:'<p style="font-size:11px;color:var(--text3)">No history yet — hit Refresh</p>'}
-        </div>
-        <div>
-          <div class="dlbl">Trend (${ph.length} checks)</div>
-          <div class="sparkwrap" style="height:90px">${sparkSVG(item.id,200,90)}</div>
-          ${competitors.length?`<div class="dlbl" style="margin-top:12px">Compare prices</div>${competitorRows}`:''}
-        </div>
-        <div>
-          <div class="dlbl">Summary</div>
-          <div class="ps-row"><span class="ps-l">Current</span><span class="ps-v">${fmtA(item.currentPrice)}</span></div>
-          <div class="ps-row"><span class="ps-l">Target</span><span class="ps-v">${fmtA(item.targetPrice)}</span></div>
-          <div class="ps-row"><span class="ps-l">All-time low</span><span class="ps-v g">${fmtA(item.allTimeLow||null)}</span></div>
-          <div class="ps-row"><span class="ps-l">Lowest seen</span><span class="ps-v g">${fmtA(lo)}</span></div>
-          <div class="ps-row"><span class="ps-l">Highest seen</span><span class="ps-v r">${fmtA(hi)}</span></div>
-          ${diff!=null?`<div class="ps-row"><span class="ps-l">${diff<=0?'Saving':'To save'}</span><span class="ps-v ${diff<=0?'g':'r'}">${diff<=0?fmtP(Math.abs(diff))+' saved':fmtP(diff)+' to go'}</span></div>`:''}
-          <div class="ps-row"><span class="ps-l">Checks</span><span class="ps-v">${ph.length}</span></div>
-          <div class="ps-row"><span class="ps-l">Last checked</span><span class="ps-v" style="font-size:10px;color:var(--text2)">${item.lastChecked?new Date(item.lastChecked).toLocaleString('en-AU',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'–'}</span></div>
-          <div class="ps-row"><span class="ps-l">Added</span><span class="ps-v" style="font-size:10px;color:var(--text2)">${item.addedAt?new Date(item.addedAt).toLocaleDateString('en-AU',{day:'2-digit',month:'short',year:'numeric'}):'–'}</span></div>
-        </div>
-      </div>
-      <div class="mode-row" onclick="event.stopPropagation()">
-        <span class="mode-lbl">Check via:</span>
-        <button class="mode-btn ${!item.checkMode||item.checkMode==='auto'?'active-auto':''}" onclick="setCheckMode('${item.id}','auto')">🔄 Auto</button>
-        <button class="mode-btn ${item.checkMode==='live'?'active-live':''}" onclick="setCheckMode('${item.id}','live')">⚡ Live prices</button>
-        <button class="mode-btn ${item.checkMode==='ai'?'active-ai':''}" onclick="setCheckMode('${item.id}','ai')">🤖 AI only</button>
-        <span style="font-size:11px;color:var(--text3);margin-left:4px">${
-          !item.checkMode||item.checkMode==='auto'?'tries Live first, AI fallback':
-          item.checkMode==='live'?'PricesAPI only — fails if not listed':
-          'Gemini AI — works on any URL'
-        }</span>
-      </div>
-      <div class="det-actions">
-        <button class="btn sm" onclick="event.stopPropagation();checkOne('${item.id}')">↻ Refresh</button>
-        ${item.pricesApiId?`<button class="btn sm" style="color:var(--amber)" onclick="event.stopPropagation();wrongProduct('${item.id}')">⚠ Wrong product?</button>`:''}
-        <button class="btn sm" onclick="event.stopPropagation();editTarget('${item.id}')">Edit target</button>
-        <button class="btn sm" onclick="event.stopPropagation();editUrl('${item.id}')">Edit URL</button>
-        <button class="btn sm" onclick="event.stopPropagation();window.open('${esc(item.url)}','_blank')">Open page ↗</button>
-        <button class="btn sm" onclick="event.stopPropagation();findRetailersForItem('${item.id}')" style="${findingRetailers.has(item.id)?'opacity:.5':''}" ${findingRetailers.has(item.id)?'disabled':''}>
-          ${findingRetailers.has(item.id)?'Searching...':'🔍 Find AU retailers'}
-        </button>
-        <button class="btn sm" onclick="event.stopPropagation();toggleAlert('${item.id}')" style="${item.emailAlert?'color:var(--green)':''}">
-          ${item.emailAlert?'🔔 Alerts on':'🔕 Alerts off'}
-        </button>
-        <button class="btn sm" style="margin-left:auto;color:var(--text3)" onclick="event.stopPropagation();removeItem('${item.id}')">Remove</button>
-      </div>
-      ${item.retailerLinks&&item.retailerLinks.length?`
-      <div style="padding:10px 0 0;border-top:1px solid var(--border);margin-top:10px">
-        <div class="dlbl" style="margin-bottom:8px">Also available at</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
-          ${item.retailerLinks.map(r=>`
-            <a href="${esc(r.url)}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--r);padding:5px 10px;text-decoration:none;font-size:12px;color:var(--text)">
-              <img src="https://www.google.com/s2/favicons?domain=${new URL(r.url).hostname}&sz=16" width="13" height="13" onerror="this.style.display='none'"/>
-              ${esc(r.name)} ↗
-            </a>`).join('')}
-        </div>
-      </div>`:''}
+    <div class="price-row">
+      <div class="price-current${hit ? ' green' : ''}">${fmt(price)}</div>
+      <div class="trend ${trend.cls}">${trend.arrow} ${trend.txt}</div>
+    </div>
+    ${targetHtml}
+    <div class="sparkline-wrap">${sparkline(history, hit)}</div>
+    ${item.notes ? `<div class="notes">${item.notes}</div>` : ''}
+    <div class="meta">
+      <span>${item.source ? item.source.replace('shopify_api','shopify').replace('json_ld','JSON-LD').replace(/^css:.*/,'DOM') : '—'}</span>
+      <span>${relTime(item.lastChecked)}</span>
     </div>
   </div>`;
 }
 
-function filtered(){
-  let l=[...items];
-  const f=tileFilter!=='all'?tileFilter:activeFilter;
-  if(f==='good') l=l.filter(i=>status(i)==='good');
-  else if(f==='close') l=l.filter(i=>status(i)==='close');
-  else if(f==='over') l=l.filter(i=>status(i)==='over');
-  else if(f==='none') l=l.filter(i=>i.lastChecked==null);
-  else if(f==='best'){const bd=bestDeal();if(bd)l=l.filter(i=>i.id===bd.id);}
-  if(searchQ) l=l.filter(i=>i.name.toLowerCase().includes(searchQ)||(i.notes||'').toLowerCase().includes(searchQ)||domain(i.url).includes(searchQ));
-  if(sortMode==='phl') l.sort((a,b)=>(b.currentPrice||0)-(a.currentPrice||0));
-  else if(sortMode==='plh') l.sort((a,b)=>(a.currentPrice||999999)-(b.currentPrice||999999));
-  else if(sortMode==='az') l.sort((a,b)=>a.name.localeCompare(b.name));
-  else if(sortMode==='disc') l.sort((a,b)=>{
-    const pctA=a.targetPrice?((a.targetPrice-(a.currentPrice||a.targetPrice))/a.targetPrice):0;
-    const pctB=b.targetPrice?((b.targetPrice-(b.currentPrice||b.targetPrice))/b.targetPrice):0;
-    return pctB-pctA;
+// ── sort ──────────────────────────────────────────────────────────────────────
+let currentSort = 'name';
+let allItems = [];
+
+function sortItems(items, mode) {
+  const arr = [...items];
+  if (mode === 'price-low')  arr.sort((a,b) => (a[1].currentPrice??Infinity) - (b[1].currentPrice??Infinity));
+  if (mode === 'price-high') arr.sort((a,b) => (b[1].currentPrice??-1) - (a[1].currentPrice??-1));
+  if (mode === 'name')       arr.sort((a,b) => a[1].name.localeCompare(b[1].name));
+  if (mode === 'target')     arr.sort((a,b) => {
+    const ha = a[1].currentPrice != null && a[1].targetPrice != null && a[1].currentPrice <= a[1].targetPrice;
+    const hb = b[1].currentPrice != null && b[1].targetPrice != null && b[1].currentPrice <= b[1].targetPrice;
+    return hb - ha;
   });
-  return l;
-}
-function bestDeal(){
-  const c=items.filter(i=>i.currentPrice!=null&&i.targetPrice&&i.targetPrice>0);
-  if(!c.length) return null;
-  return c.reduce((a,b)=>(a.currentPrice/a.targetPrice)<=(b.currentPrice/b.targetPrice)?a:b);
-}
-function render(){
-  const l=filtered();
-  const fLabel={good:'at target',close:'within 10%',over:'above target',none:'unchecked',best:'best deal'};
-  const activF=tileFilter!=='all'?tileFilter:activeFilter;
-  const tag=activF!=='all'?`<span class="active-filter-tag">${fLabel[activF]||''}</span>`:'';
-  document.getElementById('count-lbl').innerHTML=`Watchlist · ${l.length} item${l.length!==1?'s':''}${tag}`;
-  // Find best deal: item with lowest currentPrice/targetPrice ratio (must have both)
-  let bestDealId=null;
-  const candidates=items.filter(i=>i.currentPrice!=null&&i.targetPrice&&i.targetPrice>0);
-  if(candidates.length){
-    const best=candidates.reduce((a,b)=>(a.currentPrice/a.targetPrice)<=(b.currentPrice/b.targetPrice)?a:b);
-    bestDealId=best.id;
-  }
-  // Update bulk bar
-  const bar=document.getElementById('bulk-bar');
-  const cnt=selectedItems.size;
-  if(bulkMode&&cnt>0){
-    bar.classList.add('visible');
-    document.getElementById('bulk-count').textContent=cnt;
-    document.getElementById('bulk-plural').textContent=cnt===1?'':'s';
-  } else {
-    bar.classList.remove('visible');
-  }
-  document.getElementById('items-grid').innerHTML=l.length?l.map(i=>renderItem(i,i.id===bestDealId)).join(''):`<div class="empty">
-    <div class="empty-icon">${items.length?'🔍':'🛒'}</div>
-    <div class="empty-title">${items.length?'No items match this filter':'Your watchlist is empty'}</div>
-    <div class="empty-desc">${items.length?'Try switching to "All" or clearing the search.':'Start tracking prices from JB Hi-Fi, Kogan, Amazon AU,<br>Harvey Norman, Bing Lee and more.<br><br>Paste any product URL and AI fills in the details.'}</div>
-    ${!items.length?`<div class="empty-action"><button class="btn pri" onclick="showAddPanel()">+ Add your first item</button></div>`:''}
-  </div>`;
-  updateDash(bestDealId);
-}
-function updateDash(bestDealId){
-  document.getElementById('d-total').textContent=items.length;
-  document.getElementById('d-good').textContent=items.filter(i=>status(i)==='good').length;
-  document.getElementById('d-close').textContent=items.filter(i=>status(i)==='close').length;
-  document.getElementById('d-over').textContent=items.filter(i=>status(i)==='over').length;
-  const ots=items.filter(i=>status(i)==='over').reduce((a,i)=>a+(i.currentPrice-i.targetPrice),0);
-  document.getElementById('d-save').textContent=ots>0?'$'+ots.toFixed(0):'–';
-  // Best deal tile
-  const bdEl=document.getElementById('d-bestdeal');
-  if(bestDealId){
-    const bd=items.find(i=>i.id===bestDealId);
-    const pct=bd&&bd.targetPrice?Math.round((1-(bd.currentPrice/bd.targetPrice))*100):0;
-    bdEl.textContent=bd?(pct>=0?pct+'% off':'at target'):'–';
-    document.getElementById('d-bestdeal-name').textContent=bd?bd.name.slice(0,22):'–';
-  } else {
-    bdEl.textContent='–';
-    document.getElementById('d-bestdeal-name').textContent='No data yet';
-  }
-}
-
-
-// ── PricesAPI integration ──
-// AI fallback confirmation — shows a non-blocking toast with accept/decline
-function confirmAIFallback(productName, reason){
-  return new Promise(resolve=>{
-    // Remove any existing confirm toast
-    const old=document.getElementById('ai-confirm-toast');
-    if(old) old.remove();
-    const t=document.createElement('div');
-    t.id='ai-confirm-toast';
-    t.style.cssText='position:fixed;bottom:20px;right:20px;background:var(--surface3);border:1px solid var(--amber);border-radius:var(--r-lg);padding:14px 16px;z-index:300;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.6)';
-    t.innerHTML=`
-      <div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:4px">⚠ AI fallback</div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.5">
-        ${reason} for <strong>${productName.slice(0,30)}</strong>.<br>
-        Use AI to check price? <span style="color:var(--text3);font-size:11px">(~$0.001 per check)</span>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button id="ai-yes" class="btn sm pri" style="font-size:12px;padding:6px 14px">Use AI →</button>
-        <button id="ai-no" class="btn sm" style="font-size:12px;padding:6px 14px">Skip</button>
-      </div>`;
-    document.body.appendChild(t);
-    const cleanup=(val)=>{t.remove();resolve(val);};
-    document.getElementById('ai-yes').onclick=()=>cleanup(true);
-    document.getElementById('ai-no').onclick=()=>cleanup(false);
-    // Auto-dismiss after 15s = skip
-    setTimeout(()=>{if(document.getElementById('ai-confirm-toast'))cleanup(false);},15000);
+  if (mode === 'drop')       arr.sort((a,b) => {
+    const da = a[1].previousPrice ? (a[1].previousPrice - a[1].currentPrice) / a[1].previousPrice : 0;
+    const db = b[1].previousPrice ? (b[1].previousPrice - b[1].currentPrice) / b[1].previousPrice : 0;
+    return db - da;
   });
-}
-// API usage tracking (session only, lightweight)
-const apiUsage={pricesapi:0,ai:0,session_start:Date.now()};
-function trackUsage(source){ if(source==='pricesapi') apiUsage.pricesapi++; else apiUsage.ai++; updateUsageDisplay(); }
-function updateUsageDisplay(){
-  const el=document.getElementById('api-usage-display');
-  if(!el) return;
-  const mins=Math.round((Date.now()-apiUsage.session_start)/60000);
-  el.innerHTML=`<span style="color:var(--accent)">LIVE: ${apiUsage.pricesapi}</span> · <span style="color:var(--amber)">AI: ${apiUsage.ai}</span> <span style="color:var(--text3);font-size:10px">this session (${mins}m)</span>`;
-}
-// ── PricesAPI proxy via Supabase Edge Function (fixes CORS) ──
-const PROXY_URL='https://lszmlbspryvsiwbbfvdq.supabase.co/functions/v1/prices-proxy';
-async function pricesProxy(action, params){
-  if(!pricesApiKey) return null;
-  try{
-    const res=await fetch(PROXY_URL,{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-prices-key':pricesApiKey
-      },
-      body:JSON.stringify({action,...params})
-    });
-    const data=await res.json();
-    if(!res.ok){
-      console.error('[prices-proxy]',res.status,data);
-      if(res.status!==404) showToast('PricesAPI: '+(data?.error||'error '+res.status));
-      return null;
-    }
-    return data;
-  }catch(e){
-    console.error('[prices-proxy exception]',e.message);
-    return null;
-  }
-}
-async function searchPricesAPI(name){
-  if(!pricesApiKey) return null;
-  try{
-    const res=await pricesProxy('search',{query:name});
-    if(!res) return null;
-    const results=res?.data?.results||[];
-    console.log('[PricesAPI search] OK',results.length,'results for',name);
-    results.forEach((r,i)=>console.log(`  [${i}] id=${r.id} title="${r.title}" offers=${r.offerCount}`));
-    // Return all results so checkOne can try each one
-    return results;
-  }catch(e){
-    console.error('[PricesAPI search exception]',e.message);
-    return null;
-  }
-}
-async function getPricesAPIOffers(productId){
-  if(!pricesApiKey||!productId) return null;
-  try{
-    // Try AU first, then global if 0 AU offers
-    let data=await pricesProxy('offers',{productId,country:'au'});
-    if(!data) return null;
-    let offers=data?.data?.offers||[];
-    console.log('[PricesAPI offers] AU:',offers.length,'offers for id',productId);
-    if(offers.length===0){
-      // Try without country filter
-      data=await pricesProxy('offers',{productId,country:null});
-      offers=data?.data?.offers||[];
-      console.log('[PricesAPI offers] Global:',offers.length,'offers');
-    }
-    // Override offers array in data
-    if(data?.data) data.data.offers=offers;
-    console.log('[PricesAPI offers] Final:',offers.length,'offers');
-    if(!offers.length) return null;
-    // Sort by price ascending, pick cheapest
-    offers.sort((a,b)=>a.price-b.price);
-    const best=offers[0];
-    const competitors=offers.slice(1,5).map(o=>({store:o.seller,price:o.price,url:o.url||null}));
-    return {
-      price:best.price,
-      currency:best.currency||'AUD',
-      store:best.seller,
-      url:best.url||null,
-      competitors,
-      allOffers:offers,
-      source:'pricesapi'
-    };
-  }catch(e){return null;}
-}
-function updatePricesApiPill(){
-  const pill=document.getElementById('prices-pill');
-  if(!pill) return;
-  pill.textContent=pricesApiKey?'Key saved ✓':'Not set';
-  pill.className='status-pill '+(pricesApiKey?'ok':'missing');
-  if(pricesApiKey) document.getElementById('set-prices-key').value='••••••••';
+  return arr;
 }
 
-// ── Find AU retailers ──
-async function findRetailersForItem(id){
-  const item=items.find(i=>i.id===id);
-  if(!item||findingRetailers.has(id)) return;
-  if(!orKey&&!pricesApiKey){showToast('Add a PricesAPI or OpenRouter key in ⚙ Settings first');return;}
-  findingRetailers.add(id);render();
-  try{
-    const retailerList=retailers.map(r=>`${r.name} (${r.url})`).join(', ');
-    const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
-      body:JSON.stringify({
-        model:'google/gemini-2.5-flash:online',
-        response_format:{type:'json_object'},
-        messages:[{role:'user',content:`Find Australian retailers selling this EXACT product.
-
-Product: ${item.name}${item.notes?'\nExact model: '+item.notes:''}
-Original URL: ${item.url}
-
-IMPORTANT RULES:
-- Only find the EXACT product — same model number, same size, same variant
-- Check these preferred retailers FIRST: ${retailerList}
-- Then check any other Australian retailers or those that ship to Australia
-- Do NOT include the original retailer (${domain(item.url)})
-- Do NOT include international sites that don't ship to Australia
-- Only include retailers where you found a direct product page URL
-
-Return ONLY valid JSON:
-{"retailers":[{"name":"Kogan","url":"https://www.kogan.com/au/..."},{"name":"Amazon AU","url":"https://www.amazon.com.au/dp/..."}]}
-
-Maximum 5 retailers. If none found: {"retailers":[]}`}]
-      })
-    });
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    const text=data.choices?.[0]?.message?.content||'';
-    let result;
-    try{result=JSON.parse(text.replace(/```json\n?|```/g,'').trim());}
-    catch{result={retailers:[]};}
-    item.retailerLinks=result.retailers||[];
-    scheduleSave();
-    showToast(item.retailerLinks.length?`Found ${item.retailerLinks.length} retailer${item.retailerLinks.length>1?'s':''} for ${item.name.slice(0,25)}`:`No other retailers found for ${item.name.slice(0,25)}`);
-  }catch(e){
-    showToast('Search failed: '+(e.message||'Unknown').slice(0,50));
-  }
-  findingRetailers.delete(id);render();
-}
-window.findRetailersForItem=findRetailersForItem;
-
-// ── Retailer settings ──
-function renderRetailersList(){
-  const el=document.getElementById('retailers-list');
-  if(!el) return;
-  if(!retailers.length){el.innerHTML='<div style="font-size:11px;color:var(--text3)">No retailers added yet</div>';return;}
-  el.innerHTML=retailers.map((r,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px">
-      <img src="https://www.google.com/s2/favicons?domain=${r.url}&sz=16" width="14" height="14" style="opacity:.7" onerror="this.style.display='none'"/>
-      <span style="flex:1;font-size:12px;color:var(--text)">${esc(r.name)}</span>
-      <span style="font-size:11px;color:var(--text3)">${esc(r.url)}</span>
-      <button onclick="removeRetailer(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:0 4px">×</button>
-    </div>`).join('');
-}
-window.removeRetailer=function(i){
-  retailers.splice(i,1);scheduleSave();renderRetailersList();showToast('Retailer removed');
-};
-
-// ── OpenRouter calls ──
-async function callOR(item){
-  const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
-    body:JSON.stringify({
-      model:'google/gemini-2.5-flash:online',
-      response_format:{type:'json_object'},
-      messages:[{role:'user',content:`You are an Australian retail price checker. Visit the EXACT URL provided and find the current price.
-
-Product: ${item.name}${item.notes?`
-Exact model/variant (MUST MATCH): ${item.notes}`:""}
-URL: ${item.url}
-
-STRICT RULES:
-- Check ONLY the exact URL above — do not search other retailers
-- Find the price for EXACTLY this product — same model number, same size, same colour${item.notes?` — specifically: ${item.notes}`:""}
-- A Yeti 14oz is NOT the same as a Yeti 8oz — return price:null if wrong size/variant
-- If the page shows a different variant, size or model, return price: null
-- Do NOT substitute similar products under any circumstances
-
-Return ONLY valid JSON:
-{
-  "price": 299.99,
-  "currency": "AUD",
-  "store": "JB Hi-Fi",
-  "imageUrl": "https://...product.jpg",
-  "allTimeLow": 249.00,
-  "verdict": "good time to buy"
+function renderGrid() {
+  const sorted = sortItems(allItems, currentSort);
+  document.getElementById('main').innerHTML =
+    `<div class="grid">${sorted.map(([id, item]) => renderCard(id, item)).join('')}</div>`;
 }
 
-- price: current price from this exact URL as shown on the page (use the actual number, do not convert)
-- currency: the actual currency shown on the page (AUD, GBP, EUR, USD etc)
-- store: retailer name from the URL
-- imageUrl: main product image direct URL (https:// only), or null
-- allTimeLow: lowest price you can find for this exact product anywhere in any currency (convert to same currency as price), or null
-- verdict: "at historical low" | "great time to buy" | "good time to buy" | "wait for better price" | "no data"`}]
-    })
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentSort = btn.dataset.sort;
+    renderGrid();
   });
-  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||'HTTP '+res.status);}
-  const data=await res.json();
-  const text=data.choices?.[0]?.message?.content||'';
-  try{return JSON.parse(text.replace(/```json\n?|```/g,'').trim());}
-  catch{const m=text.match(/\{[^{}]*"price"\s*:[^{}]*\}/);if(m)return JSON.parse(m[0]);return{price:null};}
-}
-
-function autoAddRetailer(url){
-  if(!url) return;
-  try{
-    const host=new URL(url.startsWith('http')?url:'https://'+url).hostname.replace('www.','');
-    if(!host) return;
-    if(retailers.find(r=>r.url===host)) return; // already in list
-    // Derive a readable name from the domain
-    const name=host.split('.')[0].replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-    retailers.push({name,url:host});
-    scheduleSave();
-    showToast(`${name} added to your preferred retailers`);
-  }catch(e){}
-}
-
-async function lookupProduct(url){
-  const res=await fetch('https://openrouter.ai/api/v1/chat/completions',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+orKey,'HTTP-Referer':location.origin,'X-Title':'Price Tracker'},
-    body:JSON.stringify({
-      model:'google/gemini-2.5-flash:online',
-      response_format:{type:'json_object'},
-      messages:[{role:'user',content:`Look up this product page and extract the details.
-
-URL: ${url}
-
-Return ONLY valid JSON:
-{"name":"Sony WH-1000XM5 Wireless Headphones","notes":"WH1000XM5/B","category":"Headphones","imageUrl":"https://...product.jpg"}
-
-- name: clean readable name, not SEO title
-- notes: model number or variant, or null
-- category: one of Headphones/TV/Laptop/Phone/Tablet/Gaming/Appliance/Camera/Other
-- imageUrl: direct product image URL or null`}]
-    })
-  });
-  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e?.error?.message||'HTTP '+res.status);}
-  const data=await res.json();
-  const text=data.choices?.[0]?.message?.content||'';
-  try{return JSON.parse(text.replace(/```json\n?|```/g,'').trim());}
-  catch{return{name:'',notes:null,category:'',imageUrl:null};}
-}
-
-window.checkOne=async function(id){
-  const item=items.find(i=>i.id===id);
-  if(!item||checking.has(id)) return;
-  if(!orKey&&!pricesApiKey){showToast('Add a PricesAPI or OpenRouter key in ⚙ Settings first');return;}
-  checking.add(id);cstatus[id]='searching...';render();
-  try{
-    const prev=item.currentPrice;
-    const mode=item.checkMode||'auto';
-    let res=null;
-
-    // ── Live prices (PricesAPI via proxy) ──
-    const tryLive=async()=>{
-      if(!pricesApiKey) return null;
-      cstatus[id]='checking live prices...';render();
-      // If no stored ID, search and try each result until one has offers
-      if(!item.pricesApiId){
-        const searchQ=[item.name,item.notes].filter(Boolean).join(' ').trim();
-        const results=await searchPricesAPI(searchQ);
-        if(results&&results.length){
-          for(const r of results){
-            const pRes=await getPricesAPIOffers(r.id);
-            if(pRes){
-              item.pricesApiId=r.id;
-              console.log('[tryLive] matched:',r.title,'id:',r.id);
-              trackUsage('pricesapi');
-              return {...pRes,verdict:null,imageUrl:item.imageUrl};
-            }
-          }
-          // Store first result ID even if no offers now (may have offers later)
-          item.pricesApiId=results[0].id;
-        }
-        return null;
-      }
-      const pRes=await getPricesAPIOffers(item.pricesApiId);
-      if(pRes){ trackUsage('pricesapi'); return {...pRes,verdict:null,imageUrl:item.imageUrl}; }
-      return null;
-    };
-
-    // ── AI (Gemini via OpenRouter) ──
-    const tryAI=async()=>{
-      if(!orKey) return null;
-      cstatus[id]='checking with AI...';render();
-      const r=await callOR(item);
-      if(r) trackUsage('ai');
-      return r;
-    };
-
-    if(mode==='live'){
-      // PricesAPI only — no AI fallback
-      res=await tryLive();
-      if(!res){
-        cstatus[id]='error';
-        checking.delete(id);render();
-        showToast(pricesApiKey?`Not found in PricesAPI — try switching to Auto or AI mode`:'Add your PricesAPI key in ⚙ Settings');
-        return;
-      }
-    } else if(mode==='ai'){
-      // AI only — skip PricesAPI entirely
-      if(!orKey){
-        cstatus[id]='error';
-        checking.delete(id);render();
-        showToast('Add your OpenRouter API key in ⚙ Settings');
-        return;
-      }
-      res=await tryAI();
-    } else {
-      // Auto — try Live first, silently fall back to AI
-      if(pricesApiKey) res=await tryLive();
-      if(!res){
-        if(!orKey){
-          cstatus[id]='error';
-          checking.delete(id);render();
-          showToast(pricesApiKey?`Not in PricesAPI — add OpenRouter key for AI fallback, or set mode to AI only`:'Add a PricesAPI or OpenRouter key in ⚙ Settings');
-          return;
-        }
-        res=await tryAI();
-      }
-    }
-    if(!res) throw new Error('No price source available');
-    if(res.price!=null){
-      const currency=(res.currency||'AUD').toUpperCase();
-      const converted=await toAUD(parseFloat(res.price), currency);
-      item.currentPrice=converted.aud;
-      item.currency='AUD';
-      item.originalPrice=converted.original; // stores {amount, currency, rate} or null
-      item.store=res.store||null;
-      if(!histories[id])histories[id]=[];
-      histories[id].push({
-        price:converted.aud,
-        originalPrice:converted.original,
-        checkedAt:Date.now(),
-        store:res.store||null,
-        source:res.source||'ai',
-        url:res.url||item.url||null
-      });
-      if(histories[id].length>100)histories[id]=histories[id].slice(-100);
-    }
-    if(res.imageUrl&&res.imageUrl.startsWith('https://'))item.imageUrl=res.imageUrl;
-    if(res.price!=null){
-      if(res.allTimeLow&&parseFloat(res.allTimeLow)<item.currentPrice) item.allTimeLow=parseFloat(res.allTimeLow);
-      if(res.verdict) item.verdict=res.verdict;
-    }
-    if(res.competitors&&res.competitors.length) item.competitors=res.competitors;
-    // Auto-add retailer from item URL if not already in list
-    autoAddRetailer(item.url);
-    item.lastChecked=Date.now();
-    cstatus[id]=res.price!=null?'ok':'error';
-    if(res.price!=null&&item.targetPrice&&item.currentPrice<=item.targetPrice&&(prev==null||prev>item.targetPrice))fireNotif(item);
-    scheduleSave();
-    showToast(res.price!=null?`${item.name.slice(0,28)}: ${fmtA(res.price)}${res.store?' @ '+res.store.slice(0,18):''}`:item.name.slice(0,30)+': price not found');
-  }catch(e){
-    item.lastChecked=Date.now();cstatus[id]='error';
-    showToast('Error: '+(e.message||'Unknown').slice(0,60));
-  }
-  checking.delete(id);render();
-};
-
-async function checkAll(){
-  if(!items.length)return;
-  if(!orKey&&!pricesApiKey){showToast('Add a PricesAPI or OpenRouter key in ⚙ Settings first');return;}
-  const btn=document.getElementById('btn-check-all');
-  document.getElementById('prog-wrap').style.display='block';
-  btn.disabled=true;btn.textContent='Checking...';
-  let done=0;
-  for(const item of items){
-    document.getElementById('prog-lbl').textContent=`Checking: ${item.name.slice(0,40)}`;
-    document.getElementById('prog-fill').style.width=Math.round((done/items.length)*100)+'%';
-    document.getElementById('prog-pct').textContent=Math.round((done/items.length)*100)+'%';
-    await window.checkOne(item.id);done++;
-    document.getElementById('prog-fill').style.width=Math.round((done/items.length)*100)+'%';
-    document.getElementById('prog-pct').textContent=Math.round((done/items.length)*100)+'%';
-  }
-  document.getElementById('prog-lbl').textContent=`Done — ${done} item${done>1?'s':''} checked`;
-  document.getElementById('prog-pct').textContent='100%';
-  setTimeout(()=>{document.getElementById('prog-wrap').style.display='none';btn.disabled=false;btn.textContent='↻ Check all';},3000);
-}
-
-function fireNotif(item){
-  if(Notification.permission==='granted')
-    new Notification('Price drop! 🎉',{body:`${item.name} is now ${fmtA(item.currentPrice)} — at or below your target!`});
-}
-
-// ── Export / Import ──
-function exportData(){
-  const blob=new Blob([JSON.stringify({version:6,exportedAt:new Date().toISOString(),items,histories},null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download=`price-tracker-${new Date().toISOString().slice(0,10)}.json`;a.click();
-  showToast('Exported successfully');
-}
-function importData(file){
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const payload=JSON.parse(e.target.result);
-      if(!payload.items) throw new Error('Invalid');
-      if(!confirm(`Import ${payload.items.length} items? Will merge with current watchlist.`)) return;
-      const existing=new Set(items.map(i=>i.id));
-      const newItems=payload.items.filter(i=>!existing.has(i.id));
-      items=[...newItems,...items];
-      if(payload.histories) Object.assign(histories,payload.histories);
-      scheduleSave();render();
-      showToast(`Imported ${newItems.length} new item${newItems.length!==1?'s':''}`);
-    }catch{showToast('Import failed: invalid file');}
-  };
-  reader.readAsText(file);
-}
-
-// ── Item actions ──
-window.toggleExp=id=>{expanded.has(id)?expanded.delete(id):expanded.add(id);render();};
-function toggleGlobalAlerts(){
-  const btn=document.getElementById('btn-toggle-emails');
-  const anyOn=items.some(i=>i.emailAlert);
-  items.forEach(i=>i.emailAlert=!anyOn);
-  btn.textContent=anyOn?'Enable':'Disable';
-  btn.style.color=anyOn?'':'var(--green)';
-  scheduleSave();render();
-  showToast(anyOn?'Email alerts disabled for all items':'Email alerts enabled for all items');
-}
-window.toggleGlobalAlerts=toggleGlobalAlerts;
-window.toggleAlert=id=>{
-  const item=items.find(i=>i.id===id);if(!item)return;
-  item.emailAlert=!item.emailAlert;
-  scheduleSave();render();
-  showToast(item.emailAlert?`Email alerts on for ${item.name.slice(0,25)}`:`Email alerts off for ${item.name.slice(0,25)}`);
-};
-window.editTarget=id=>{
-  const item=items.find(i=>i.id===id);if(!item)return;
-  const v=prompt(`New target price for:\n"${item.name}"\n\nCurrent: ${fmtA(item.targetPrice)}`);
-  if(v===null)return;const p=parseFloat(v);
-  if(!isNaN(p)&&p>0){item.targetPrice=p;scheduleSave();render();}
-};
-window.editUrl=id=>{
-  const item=items.find(i=>i.id===id);if(!item)return;
-  const v=prompt(`New URL for:\n"${item.name}"\n\nCurrent: ${item.url}`);
-  if(!v||!v.trim().startsWith('http')){if(v!==null)showToast('Invalid URL — must start with http');return;}
-  item.url=v.trim();
-  // Reset price data since URL changed
-  item.currentPrice=null;item.store=null;item.verdict=null;item.allTimeLow=null;item.competitors=null;item.retailerLinks=null;item.originalPrice=null;
-  scheduleSave();render();
-  showToast('URL updated — hit Refresh to check new price');
-};
-window.removeItem=id=>{
-  const item=items.find(i=>i.id===id);
-  if(!item||!confirm(`Remove "${item.name}"?`))return;
-  items=items.filter(i=>i.id!==id);delete histories[id];
-  scheduleSave();render();
-};
-
-// ── Add panel ──
-function resetAddPanel(){
-  document.getElementById('add-step1').style.display='block';
-  document.getElementById('add-step2').style.display='none';
-  document.getElementById('inp-url').value='';
-  document.getElementById('inp-name').value='';
-  document.getElementById('inp-notes').value='';
-  document.getElementById('inp-target').value='';
-  document.getElementById('inp-cat').value='';
-  document.getElementById('add-preview-img').innerHTML='🛍️';
-  pendingImageUrl=null;
-}
-function closeAddPanel(){ document.getElementById('add-panel').style.display='none'; resetAddPanel(); }
-function showAddPanel(){ resetAddPanel(); document.getElementById('add-panel').style.display='block'; document.getElementById('inp-url').focus(); }
-
-// ── Wire up buttons ──
-// Auth
-document.getElementById('si-btn').onclick=doSignin;
-document.getElementById('si-email').onkeydown=e=>{if(e.key==='Enter')document.getElementById('si-pass').focus();};
-document.getElementById('si-pass').onkeydown=e=>{if(e.key==='Enter')doSignin();};
-document.getElementById('si-to-signup').onclick=()=>showScreen('screen-signup');
-document.getElementById('su-btn').onclick=doSignup;
-document.getElementById('su-to-signin').onclick=()=>showScreen('screen-signin');
-
-// Settings
-document.getElementById('btn-settings').onclick=()=>{
-  updateORPill();
-  renderRetailersList();
-  document.getElementById('settings-modal').classList.add('open');
-};
-document.getElementById('modal-close').onclick=()=>document.getElementById('settings-modal').classList.remove('open');
-document.getElementById('settings-modal').onclick=function(e){if(e.target===this)this.classList.remove('open');};
-document.getElementById('btn-save-priceskey').onclick=async function(){
-  const k=document.getElementById('set-prices-key').value.trim();
-  if(k&&k!=='••••••••'){pricesApiKey=k;scheduleSave();updatePricesApiPill();showToast('PricesAPI key saved');}
-};
-document.getElementById('btn-save-orkey').onclick=async function(){
-  const val=document.getElementById('set-or-key').value.trim();
-  if(!val||val==='••••••••'){showToast('Please enter your API key');return;}
-  if(!val.startsWith('sk-or-')){showToast('OpenRouter key should start with sk-or-');return;}
-  orKey=val;
-  await dbSave();
-  updateORPill();
-  document.getElementById('settings-modal').classList.remove('open');
-  showToast('API key saved');
-};
-document.getElementById('btn-signout').onclick=async()=>{
-  if(!confirm('Sign out?'))return;
-  await sb.auth.signOut();
-  items=[];histories={};orKey='';currentUser=null;
-  document.getElementById('settings-modal').classList.remove('open');
-  showScreen('screen-signin');
-};
-document.getElementById('btn-clear-all').onclick=async()=>{
-  if(!confirm('Delete ALL your watchlist data? This cannot be undone.'))return;
-  items=[];histories={};
-  await dbSave();
-  document.getElementById('settings-modal').classList.remove('open');
-  render();showToast('All data cleared');
-};
-document.getElementById('btn-add-retailer').onclick=function(){
-  const name=document.getElementById('inp-retailer-name').value.trim();
-  const url=document.getElementById('inp-retailer-url').value.trim().replace(/^https?:\/\//,'').replace(/\/.*$/,'');
-  if(!name||!url){showToast('Please enter both a name and URL');return;}
-  if(retailers.find(r=>r.url===url)){showToast('That retailer is already in your list');return;}
-  retailers.push({name,url});
-  document.getElementById('inp-retailer-name').value='';
-  document.getElementById('inp-retailer-url').value='';
-  scheduleSave();renderRetailersList();
-  showToast(`${name} added to your retailers`);
-};
-document.getElementById('modal-import').onclick=()=>document.getElementById('import-file').click();
-document.getElementById('import-file').onchange=e=>{if(e.target.files[0]){importData(e.target.files[0]);e.target.value='';}};
-
-// App
-document.getElementById('btn-check-all').onclick=checkAll;
-document.getElementById('btn-show-add').onclick=showAddPanel;
-document.getElementById('btn-notif').onclick=async()=>{await Notification.requestPermission();document.getElementById('notif-bar').style.display='none';};
-
-// Add panel step 1
-document.getElementById('btn-cancel').onclick=closeAddPanel;
-document.getElementById('btn-manual').onclick=()=>{
-  document.getElementById('add-step1').style.display='none';
-  document.getElementById('add-step2').style.display='block';
-  document.getElementById('inp-name').focus();
-};
-document.getElementById('btn-lookup').onclick=async function(){
-  const url=document.getElementById('inp-url').value.trim();
-  if(!url||!url.startsWith('http')){showToast('Please enter a valid URL starting with http');return;}
-  if(!orKey&&!pricesApiKey){showToast('Add a PricesAPI or OpenRouter key in ⚙ Settings first');return;}
-  const btn=document.getElementById('btn-lookup');
-  btn.disabled=true;btn.textContent='Looking up...';
-  const loadingEl=document.createElement('div');
-  loadingEl.className='lookup-loading';
-  loadingEl.innerHTML='<div class="spin"></div><span>Fetching product details...</span>';
-  document.getElementById('add-step1').appendChild(loadingEl);
-  try{
-    const product=await lookupProduct(url);
-    loadingEl.remove();
-    document.getElementById('inp-name').value=product.name||'';
-    document.getElementById('inp-notes').value=product.notes||'';
-    document.getElementById('inp-target').value='';
-    const catEl=document.getElementById('inp-cat');
-    const match=[...catEl.options].find(o=>o.value===product.category);
-    catEl.value=match?product.category:'';
-    pendingImageUrl=product.imageUrl||null;
-    if(product.imageUrl){
-      document.getElementById('add-preview-img').innerHTML=`<img src="${esc(product.imageUrl)}" style="width:48px;height:48px;object-fit:cover;border-radius:8px" onerror="this.parentNode.innerHTML='🛍️'"/>`;
-    }
-    document.getElementById('add-step1').style.display='none';
-    document.getElementById('add-step2').style.display='block';
-    const nameEl=document.getElementById('inp-name');
-    nameEl.focus();nameEl.select();
-  }catch(e){
-    loadingEl.remove();
-    showToast('Lookup failed — try filling in manually');
-    document.getElementById('add-step1').style.display='none';
-    document.getElementById('add-step2').style.display='block';
-  }
-  btn.disabled=false;btn.textContent='Look up →';
-};
-document.getElementById('inp-url').onkeydown=e=>{if(e.key==='Enter')document.getElementById('btn-lookup').click();};
-
-// Add panel step 2
-document.getElementById('btn-back-step1').onclick=()=>{
-  document.getElementById('add-step2').style.display='none';
-  document.getElementById('add-step1').style.display='block';
-};
-document.getElementById('btn-cancel2').onclick=closeAddPanel;
-document.getElementById('btn-save').onclick=function(){
-  const name=document.getElementById('inp-name').value.trim();
-  const url=document.getElementById('inp-url').value.trim();
-  const target=document.getElementById('inp-target').value.trim();
-  const notes=document.getElementById('inp-notes').value.trim();
-  const category=document.getElementById('inp-cat').value;
-  if(!name){showToast('Please enter a product name');return;}
-  if(!url||!url.startsWith('http')){showToast('Please enter a valid URL');return;}
-  const item={id:uid(),name,url,targetPrice:target?parseFloat(target):null,notes:notes||null,category:category||null,currentPrice:null,imageUrl:pendingImageUrl||null,currency:'AUD',lastChecked:null,addedAt:Date.now()};
-  items.unshift(item);histories[item.id]=[];
-  autoAddRetailer(url);
-  scheduleSave();closeAddPanel();render();
-  window.checkOne(item.id);
-};
-
-// Filters & search
-document.querySelectorAll('.fb').forEach(b=>b.onclick=function(){
-  if(this.id==='btn-bulk-mode'){
-    bulkMode?exitBulkMode():enterBulkMode();
-    return;
-  }
-  document.querySelectorAll('.fb').forEach(x=>{if(x.id!=='btn-bulk-mode')x.classList.remove('active');});
-  this.classList.add('active');activeFilter=this.dataset.f;render();
 });
-document.getElementById('search-inp').oninput=function(){searchQ=this.value.toLowerCase().trim();render()};
-document.getElementById('bulk-cancel').onclick=exitBulkMode;
-document.getElementById('bulk-delete').onclick=async function(){
-  if(!selectedItems.size)return;
-  const ids=[...selectedItems];
-  if(!confirm(`Delete ${ids.length} item${ids.length>1?'s':''}? This cannot be undone.`))return;
-  items=items.filter(i=>!ids.includes(i.id));
-  ids.forEach(id=>delete histories[id]);
-  exitBulkMode();
-  scheduleSave();showToast(`Deleted ${ids.length} item${ids.length>1?'s':''}`);
-};
-document.getElementById('bulk-check').onclick=async function(){
-  if(!selectedItems.size)return;
-  const ids=[...selectedItems];
-  exitBulkMode();
-  for(const id of ids) await window.checkOne(id);
-  showToast(`Checked ${ids.length} item${ids.length>1?'s':''}`);
-};
-document.getElementById('btn-expand-all').onclick=function(){
-  const allExpanded=filtered().every(i=>expanded.has(i.id));
-  filtered().forEach(i=>allExpanded?expanded.delete(i.id):expanded.add(i.id));
-  this.textContent=allExpanded?'Expand all':'Collapse all';
-  render();
-};
 
-function tileClick(f,tileId){
-  tileFilter=f;
-  document.querySelectorAll('.dc').forEach(t=>{
-    t.classList.remove('tile-active','tile-amber-active','tile-red-active','tile-gold-active');
-  });
-  const tile=document.getElementById(tileId);
-  if(tileId==='tile-good') tile.classList.add('tile-active');
-  else if(tileId==='tile-close') tile.classList.add('tile-amber-active');
-  else if(tileId==='tile-over') tile.classList.add('tile-red-active');
-  else if(tileId==='tile-best') tile.classList.add('tile-gold-active');
-  else tile.classList.add('tile-active');
-  // sync filter buttons
-  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
-  if(f==='all') document.getElementById('fb-all')?.classList.add('active');
-  activeFilter=f;
-  render();
-}
-function setSort(mode,btnId){
-  sortMode=mode;
-  document.querySelectorAll('.sb').forEach(b=>b.classList.remove('active'));
-  document.getElementById(btnId).classList.add('active');
-  render();
-}
-function checkNotifPerm(){
-  document.getElementById('notif-bar').style.display=typeof Notification!=='undefined'&&Notification.permission==='default'?'flex':'none';
-}
+// ── load data ─────────────────────────────────────────────────────────────────
+async function load() {
+  try {
+    const r = await fetch('data/prices.json?t=' + Date.now());
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
 
-// ── Bulk select ──
-function setCheckMode(id, mode){
-  const item=items.find(i=>i.id===id);
-  if(!item) return;
-  item.checkMode=mode;
-  scheduleSave();
-  const labels={auto:'Auto (Live → AI fallback)',live:'⚡ Live prices only',ai:'🤖 AI only'};
-  showToast(`${item.name.slice(0,25)}: ${labels[mode]}`);
-  render();
-}
-function wrongProduct(id){
-  const item=items.find(i=>i.id===id);
-  if(!item) return;
-  delete item.pricesApiId;
-  scheduleSave();
-  showToast('PricesAPI ID cleared — next check will re-search');
-  render();
-}
-function toggleHistManage(id){
-  if(histManage.has(id)){ histManage.delete(id); if(histSel[id]) histSel[id].clear(); }
-  else { histManage.add(id); if(!histSel[id]) histSel[id]=new Set(); }
-  render();
-}
-function toggleHistEntry(id, ts, checked){
-  if(!histSel[id]) histSel[id]=new Set();
-  if(checked) histSel[id].add(ts); else histSel[id].delete(ts);
-  // update count label without full re-render
-  const bar=document.querySelector(`[data-id="${id}"] .hist-count`);
-  if(bar) bar.textContent=histSel[id].size+' selected';
-  const delBtn=document.querySelector(`[data-id="${id}"] .hist-manage-bar button`);
-  if(delBtn) delBtn.disabled=histSel[id].size===0;
-}
-function selectAllHist(id, checked){
-  const ph=(histories[id]||[]).filter(p=>p.price!=null);
-  if(!histSel[id]) histSel[id]=new Set();
-  if(checked) ph.forEach(p=>histSel[id].add(p.checkedAt));
-  else histSel[id].clear();
-  render();
-}
-function deleteHistEntries(id){
-  const toDelete=histSel[id];
-  if(!toDelete||!toDelete.size) return;
-  const count=toDelete.size;
-  histories[id]=(histories[id]||[]).filter(p=>!toDelete.has(p.checkedAt));
-  // recalculate currentPrice from latest remaining entry
-  const item=items.find(i=>i.id===id);
-  if(item){
-    const remaining=(histories[id]||[]).filter(p=>p.price!=null);
-    if(remaining.length){
-      const latest=remaining[remaining.length-1];
-      item.currentPrice=latest.price;
-      item.store=latest.store||item.store;
-    } else {
-      item.currentPrice=null;
+    allItems = Object.entries(data);
+
+    if (allItems.length === 0) {
+      document.getElementById('main').innerHTML = `
+        <div class="error-state">
+          <h2>No data yet</h2>
+          <p>The first price check hasn't run yet. Trigger the GitHub Action manually or wait for tomorrow's scheduled run.</p>
+        </div>`;
+      return;
     }
-    // recalculate allTimeLow
-    const allPrices=remaining.map(p=>p.price);
-    item.allTimeLow=allPrices.length?Math.min(...allPrices):null;
+
+    // Stats
+    const prices   = allItems.map(([,v]) => v.currentPrice).filter(Boolean);
+    const hits     = allItems.filter(([,v]) => v.currentPrice != null && v.targetPrice != null && v.currentPrice <= v.targetPrice);
+    const drops    = allItems.filter(([,v]) => v.previousPrice && v.currentPrice < v.previousPrice);
+    const errors   = allItems.filter(([,v]) => v.lastError);
+
+    document.getElementById('s-total').textContent  = allItems.length;
+    document.getElementById('s-target').textContent = hits.length;
+    document.getElementById('s-drops').textContent  = drops.length;
+    document.getElementById('s-errors').textContent = errors.length;
+
+    // Most recent check time
+    const times = allItems.map(([,v]) => v.lastChecked).filter(Boolean).sort().reverse();
+    if (times[0]) {
+      const d = new Date(times[0]);
+      document.getElementById('last-run').textContent =
+        `Last checked ${d.toLocaleString('en-AU', { dateStyle:'medium', timeStyle:'short' })} AEST`;
+    }
+
+    document.getElementById('stats').hidden    = false;
+    document.getElementById('sort-bar').hidden = false;
+
+    renderGrid();
+
+  } catch (err) {
+    document.getElementById('main').innerHTML = `
+      <div class="error-state">
+        <h2>Could not load price data</h2>
+        <p>Make sure <code>data/prices.json</code> exists in the repo and GitHub Pages is serving from the correct branch.<br><br>Error: ${err.message}</p>
+      </div>`;
   }
-  histSel[id].clear();
-  histManage.delete(id);
-  scheduleSave();
-  showToast(`Deleted ${count} price entr${count>1?'ies':'y'}`);
-  render();
-}
-function toggleSelect(id){
-  if(selectedItems.has(id)) selectedItems.delete(id);
-  else selectedItems.add(id);
-  render();
-}
-function enterBulkMode(){
-  bulkMode=true;
-  selectedItems.clear();
-  document.getElementById('items-grid').classList.add('bulk-mode');
-  document.getElementById('btn-bulk-mode').classList.add('active');
-  document.getElementById('btn-bulk-mode').textContent='✕ Cancel';
-  render();
-}
-function exitBulkMode(){
-  bulkMode=false;
-  selectedItems.clear();
-  document.getElementById('items-grid').classList.remove('bulk-mode');
-  document.getElementById('btn-bulk-mode').classList.remove('active');
-  document.getElementById('btn-bulk-mode').textContent='☑ Select';
-  render();
 }
 
-// ── Init: check for existing session ──
-(async function init(){
-  const{data:{session}}=await sb.auth.getSession();
-  if(session){
-    currentUser=session.user;
-    await bootApp();
-  } else {
-    showScreen('screen-signin');
-  }
-})();
+load();
 </script>
 </body>
 </html>
