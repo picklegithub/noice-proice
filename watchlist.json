@@ -1,0 +1,41 @@
+[
+  {
+    "id": "shelly-plus-1pm",
+    "name": "Shelly Plus 1PM",
+    "url": "https://www.ozsmartthings.com.au/products/shelly-plus-1pm",
+    "targetPrice": 20.00,
+    "notes": "Gen2 smart relay",
+    "shopify": true
+  },
+  {
+    "id": "shelly-plus-2pm",
+    "name": "Shelly Plus 2PM",
+    "url": "https://www.ozsmartthings.com.au/products/shelly-plus-2pm",
+    "targetPrice": 30.00,
+    "notes": "2-channel relay with power monitoring",
+    "shopify": true
+  },
+  {
+    "id": "trmnl",
+    "name": "TRMNL E-ink Display",
+    "url": "https://usetrmnl.com/products/trmnl",
+    "targetPrice": 100.00,
+    "notes": "7.5\" e-ink dashboard display",
+    "shopify": true
+  },
+  {
+    "id": "pimoroni-pico-display",
+    "name": "Pimoroni Pico Display Pack 2.0",
+    "url": "https://shop.pimoroni.com/products/pico-display-pack-2-0",
+    "targetPrice": 25.00,
+    "notes": "2.0\" IPS LCD for Raspberry Pi Pico",
+    "shopify": true
+  },
+  {
+    "id": "ha-green",
+    "name": "Home Assistant Green",
+    "url": "https://www.home-assistant.io/green/",
+    "targetPrice": 99.00,
+    "notes": "Official HA hub"
+  }
+]
