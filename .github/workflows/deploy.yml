@@ -1,4 +1,4 @@
-name: Deploy Price Tracker
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -11,29 +11,13 @@ jobs:
       pages: write
       id-token: write
       contents: read
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Inject secrets
-        run: |
-          echo "Before substitution:"
-          grep "SUPABASE" index.html
-          sed -i "s|YOUR_SUPABASE_URL|${{ secrets.SUPABASE_URL }}|g" index.html
-          sed -i "s|YOUR_SUPABASE_ANON_KEY|${{ secrets.SUPABASE_ANON_KEY }}|g" index.html
-          echo "After substitution:"
-          grep "SUPABASE" index.html
-
-      - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: .
-
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
