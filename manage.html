@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>noice-proice · manage</title>
+<style>
+  :root {
+    --bg: #f5f5f5; --surface: #ffffff; --border: #e5e7eb;
+    --text: #111827; --muted: #6b7280; --accent: #4f46e5;
+    --green: #16a34a; --green-bg: #f0fdf4; --green-bd: #bbf7d0;
+    --red: #dc2626; --red-bg: #fff1f2; --red-bd: #fecdd3;
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f0f0f; --surface: #1a1a1a; --border: #2a2a2a;
+      --text: #f1f5f9; --muted: #94a3b8; --accent: #818cf8;
+      --green: #4ade80; --green-bg: #052e16; --green-bd: #166534;
+      --red: #f87171; --red-bg: #1c0408; --red-bd: #450a0a;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui,-apple-system,sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px 16px 60px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header { max-width: 760px; margin: 0 auto 28px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .logo { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .nav-link { font-size: 13px; color: var(--muted); margin-left: auto; }
+
+  .wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+
+  .auth-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .auth-card h2 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .auth-row { display: flex; gap: 8px; }
+  .auth-row input { flex: 1; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 13px; font-family: var(--font-mono, monospace); }
+  .auth-row input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  button { cursor: pointer; font-size: 13px; font-family: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); transition: background .1s; }
+  button:hover { background: var(--bg); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button.primary:hover { opacity: .9; }
+  button.danger  { color: var(--red); border-color: var(--red-bd); background: var(--red-bg); }
+  button.danger:hover { opacity: .85; }
+  button.small   { padding: 5px 10px; font-size: 12px; }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+
+  .section-head { display: flex; justify-content: space-between; align-items: center; }
+  .section-head h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+  /* add form */
+  .add-form { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: none; flex-direction: column; gap: 12px; }
+  .add-form.open { display: flex; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field.full { grid-column: 1 / -1; }
+  label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  input, textarea { padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; width: 100%; }
+  input:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+  textarea { resize: vertical; min-height: 60px; }
+  .shopify-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .shopify-row input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); }
+  .shopify-hint { font-size: 11px; color: var(--muted); }
+  .form-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* item cards */
+  .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .item-card.editing { border-color: var(--accent); }
+  .item-view { padding: 14px 16px; display: flex; gap: 12px; align-items: flex-start; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-url  { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-meta { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+  .pill { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--bg); border: 1px solid var(--border); color: var(--muted); }
+  .pill.shopify { background: var(--green-bg); border-color: var(--green-bd); color: var(--green); }
+  .pill.target  { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+  @media (prefers-color-scheme: dark) {
+    .pill.target { background: #0c1a3d; border-color: #1e40af; color: #93c5fd; }
+  }
+  .item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .item-edit { padding: 18px 16px; display: none; flex-direction: column; gap: 12px; border-top: 1px solid var(--border); }
+  .item-edit.open { display: flex; }
+
+  .status { font-size: 12px; padding: 8px 12px; border-radius: 8px; }
+  .status.ok  { background: var(--green-bg); color: var(--green); }
+  .status.err { background: var(--red-bg); color: var(--red); }
+
+  .empty { text-align: center; padding: 48px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">noice<span>-</span>proice</div>
+  <a class="nav-link" href="index.html">← back to prices</a>
+</header>
+
+<div class="wrap">
+
+  <div class="auth-card" id="auth-card">
+    <h2>GitHub token</h2>
+    <div class="auth-row">
+      <input type="password" id="pat" placeholder="ghp_…" autocomplete="off">
+      <button class="primary" onclick="connect()">Connect</button>
+    </div>
+    <p class="hint">Needs <code>repo</code> scope. Stored in session only — cleared when you close the tab. <a href="https://github.com/settings/tokens/new?scopes=repo&description=noice-proice-manage" target="_blank">Generate one →</a></p>
+  </div>
+
+  <div id="status-bar" style="display:none"></div>
+
+  <div id="main" style="display:none">
+    <div class="section-head" style="margin-bottom:12px">
+      <h2 id="item-count">Watchlist</h2>
+      <button class="primary" onclick="toggleAddForm()">+ Add item</button>
+    </div>
+
+    <div class="add-form" id="add-form">
+      <div class="form-grid">
+        <div class="field full">
+          <label>Product URL</label>
+          <input id="f-url" type="url" placeholder="https://store.example.com/products/thing" oninput="onUrlChange()">
+        </div>
+        <div class="field full">
+          <label>Name</label>
+          <input id="f-name" type="text" placeholder="Product name">
+        </div>
+        <div class="field">
+          <label>Target price (AUD)</label>
+          <input id="f-target" type="number" min="0" step="0.01" placeholder="29.99">
+        </div>
+        <div class="field">
+          <label>Notes / SKU</label>
+          <input id="f-notes" type="text" placeholder="SKU or variant note">
+        </div>
+      </div>
+      <div class="shopify-row">
+        <input type="checkbox" id="f-shopify">
+        <label for="f-shopify" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)">Shopify store</label>
+        <span class="shopify-hint" id="shopify-hint">auto-detected from URL</span>
+      </div>
+      <div class="form-actions">
+        <button onclick="toggleAddForm()">Cancel</button>
+        <button class="primary" onclick="addItem()">Add to watchlist</button>
+      </div>
+    </div>
+
+    <div id="item-list"></div>
+  </div>
+
+</div>
+
+<script>
+const REPO = 'picklegithub/noice-proice';
+const FILE = 'watchlist.json';
+let token = '', watchlist = [], fileSha = '';
+
+const SHOPIFY_SIGNALS = ['/products/', 'myshopify.com', 'shop.trmnl.com',
+  'au-shop.nanoleaf.me', 'kegland.com.au', 'shop.everythingsmart.io', 'au.yeti.com'];
+
+function isShopify(url) {
+  return SHOPIFY_SIGNALS.some(s => url.includes(s));
+}
+
+function slugify(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+function showStatus(msg, ok = true) {
+  const el = document.getElementById('status-bar');
+  el.style.display = 'block';
+  el.className = 'status ' + (ok ? 'ok' : 'err');
+  el.textContent = msg;
+  if (ok) setTimeout(() => el.style.display = 'none', 3000);
+}
+
+async function ghFetch(method, path, body) {
+  const r = await fetch(`https://api.github.com${path}`, {
+    method,
+    headers: {
+      'Authorization': `token ${token}`,
+      'Accept': 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.message || `HTTP ${r.status}`);
+  return data;
+}
+
+async function connect() {
+  token = document.getElementById('pat').value.trim();
+  if (!token) return;
+  try {
+    await load();
+    sessionStorage.setItem('np_token', token);
+    document.getElementById('auth-card').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+  } catch (e) {
+    showStatus('Connection failed: ' + e.message, false);
+  }
+}
+
+async function load() {
+  const d = await ghFetch('GET', `/repos/${REPO}/contents/${FILE}`);
+  fileSha   = d.sha;
+  watchlist = JSON.parse(atob(d.content.replace(/\n/g, '')));
+  renderList();
+  document.getElementById('item-count').textContent = `Watchlist · ${watchlist.length} items`;
+}
+
+async function save(msg) {
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(watchlist, null, 2))));
+  const d = await ghFetch('PUT', `/repos/${REPO}/contents/${FILE}`, {
+    message: msg,
+    content,
+    sha: fileSha,
+  });
+  fileSha = d.content.sha;
+  showStatus('Saved ✓');
+}
+
+function renderList() {
+  const el = document.getElementById('item-list');
+  if (!watchlist.length) { el.innerHTML = '<div class="empty">No items yet — add one above.</div>'; return; }
+  el.innerHTML = watchlist.map((item, i) => `
+    <div class="item-card" id="card-${i}" style="margin-bottom:10px">
+      <div class="item-view">
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-url"><a href="${item.url}" target="_blank" rel="noopener">${item.url}</a></div>
+          <div class="item-meta">
+            ${item.targetPrice != null ? `<span class="pill target">target $${item.targetPrice}</span>` : ''}
+            ${item.shopify ? '<span class="pill shopify">Shopify</span>' : ''}
+            ${item.notes ? `<span class="pill">${item.notes}</span>` : ''}
+          </div>
+        </div>
+        <div class="item-actions">
+          <button class="small" onclick="startEdit(${i})">Edit</button>
+          <button class="small danger" onclick="removeItem(${i})">Remove</button>
+        </div>
+      </div>
+      <div class="item-edit" id="edit-${i}">
+        <div class="form-grid">
+          <div class="field full">
+            <label>URL</label>
+            <input id="e-url-${i}" type="url" value="${item.url}" oninput="onEditUrlChange(${i})">
+          </div>
+          <div class="field full">
+            <label>Name</label>
+            <input id="e-name-${i}" type="text" value="${item.name}">
+          </div>
+          <div class="field">
+            <label>Target price (AUD)</label>
+            <input id="e-target-${i}" type="number" min="0" step="0.01" value="${item.targetPrice ?? ''}">
+          </div>
+          <div class="field">
+            <label>Notes / SKU</label>
+            <input id="e-notes-${i}" type="text" value="${item.notes ?? ''}">
+          </div>
+        </div>
+        <div class="shopify-row">
+          <input type="checkbox" id="e-shopify-${i}" ${item.shopify ? 'checked' : ''}>
+          <label for="e-shopify-${i}" style="text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)">Shopify store</label>
+        </div>
+        <div class="form-actions">
+          <button onclick="cancelEdit(${i})">Cancel</button>
+          <button class="primary" onclick="saveEdit(${i})">Save changes</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function startEdit(i) {
+  document.querySelectorAll('.item-edit').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.item-card').forEach(el => el.classList.remove('editing'));
+  document.getElementById(`edit-${i}`).classList.add('open');
+  document.getElementById(`card-${i}`).classList.add('editing');
+}
+function cancelEdit(i) {
+  document.getElementById(`edit-${i}`).classList.remove('open');
+  document.getElementById(`card-${i}`).classList.remove('editing');
+}
+function onEditUrlChange(i) {
+  const url = document.getElementById(`e-url-${i}`).value;
+  if (isShopify(url)) document.getElementById(`e-shopify-${i}`).checked = true;
+}
+
+async function saveEdit(i) {
+  const url    = document.getElementById(`e-url-${i}`).value.trim();
+  const name   = document.getElementById(`e-name-${i}`).value.trim();
+  const target = document.getElementById(`e-target-${i}`).value;
+  const notes  = document.getElementById(`e-notes-${i}`).value.trim();
+  const shopify = document.getElementById(`e-shopify-${i}`).checked;
+  if (!url || !name) return showStatus('URL and name are required', false);
+
+  watchlist[i] = {
+    ...watchlist[i],
+    name, url,
+    targetPrice: target ? parseFloat(target) : undefined,
+    notes: notes || undefined,
+    shopify: shopify || undefined,
+  };
+  // clean undefined
+  Object.keys(watchlist[i]).forEach(k => watchlist[i][k] === undefined && delete watchlist[i][k]);
+
+  await save(`edit: update ${name}`);
+  cancelEdit(i);
+  renderList();
+}
+
+async function removeItem(i) {
+  if (!confirm(`Remove "${watchlist[i].name}" from your watchlist?`)) return;
+  const name = watchlist[i].name;
+  watchlist.splice(i, 1);
+  await save(`edit: remove ${name}`);
+  renderList();
+  document.getElementById('item-count').textContent = `Watchlist · ${watchlist.length} items`;
+}
+
+function toggleAddForm() {
+  const f = document.getElementById('add-form');
+  f.classList.toggle('open');
+  if (f.classList.contains('open')) {
+    document.getElementById('f-url').focus();
+  } else {
+    ['f-url','f-name','f-notes','f-target'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-shopify').checked = false;
+  }
+}
+
+function onUrlChange() {
+  const url = document.getElementById('f-url').value;
+  const detected = isShopify(url);
+  document.getElementById('f-shopify').checked = detected;
+  document.getElementById('shopify-hint').textContent = detected ? '✓ auto-detected' : 'auto-detected from URL';
+}
+
+async function addItem() {
+  const url    = document.getElementById('f-url').value.trim();
+  const name   = document.getElementById('f-name').value.trim();
+  const target = document.getElementById('f-target').value;
+  const notes  = document.getElementById('f-notes').value.trim();
+  const shopify = document.getElementById('f-shopify').checked;
+  if (!url || !name) return showStatus('URL and name are required', false);
+
+  const item = { id: slugify(name) + '-' + Date.now().toString(36), name, url };
+  if (target) item.targetPrice = parseFloat(target);
+  if (notes)  item.notes = notes;
+  if (shopify) item.shopify = true;
+
+  watchlist.push(item);
+  await save(`edit: add ${name}`);
+  toggleAddForm();
+  renderList();
+  document.getElementById('item-count').textContent = `Watchlist · ${watchlist.length} items`;
+}
+
+// Auto-connect if token saved in session
+const saved = sessionStorage.getItem('np_token');
+if (saved) {
+  document.getElementById('pat').value = saved;
+  connect();
+}
+</script>
+</body>
+</html>
