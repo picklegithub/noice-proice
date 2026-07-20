@@ -80,13 +80,17 @@
       {
         "date": "2026-07-19",
         "price": 199.0
+      },
+      {
+        "date": "2026-07-20",
+        "price": 199.0
       }
     ],
     "name": "Logitech MX Master 4 Wireless Mouse (Graphite)",
     "url": "https://www.jbhifi.com.au/products/logitech-mx-master-4-mouse-graphite",
     "targetPrice": 150,
     "notes": "910-007565",
-    "lastChecked": "2026-07-19T23:49:29.726041+00:00",
+    "lastChecked": "2026-07-20T23:48:22.775261+00:00",
     "currentPrice": 199.0,
     "previousPrice": 199.0,
     "source": "shopify_api",
@@ -98,7 +102,7 @@
     "url": "https://www.smarthome.com.au/product/shelly-pro-3em/",
     "targetPrice": 200,
     "notes": "SHELLY-PRO-3EM-400",
-    "lastChecked": "2026-07-19T23:49:35.552488+00:00",
+    "lastChecked": "2026-07-20T23:48:28.883583+00:00",
     "lastError": "Price not found"
   },
   "mn18vb21za8": {
@@ -182,13 +186,17 @@
       {
         "date": "2026-07-19",
         "price": 60.0
+      },
+      {
+        "date": "2026-07-20",
+        "price": 60.0
       }
     ],
     "name": "New Era Dragons Vegas 9Forty Trucker Cap",
     "url": "https://shop.dragons.com.au/collections/headwear-1/products/new-era-9forty-vegas-trucker-cap",
     "targetPrice": 50,
     "notes": "Vegas Trucker Cap",
-    "lastChecked": "2026-07-19T23:49:38.084714+00:00",
+    "lastChecked": "2026-07-20T23:48:31.255857+00:00",
     "currentPrice": 60.0,
     "previousPrice": 60.0,
     "source": "shopify_api",
@@ -271,13 +279,17 @@
       {
         "date": "2026-07-19",
         "price": 15.95
+      },
+      {
+        "date": "2026-07-20",
+        "price": 15.95
       }
     ],
     "name": "Kegland 1L Power Sprayer (Rechargeable USB Type-C)",
     "url": "https://kegland.com.au/products/1l-power-sprayer-usb-type-c?variant=45993689284864",
     "targetPrice": 15,
     "notes": "KL40860",
-    "lastChecked": "2026-07-19T23:49:40.391458+00:00",
+    "lastChecked": "2026-07-20T23:48:33.516488+00:00",
     "currentPrice": 15.95,
     "previousPrice": 15.95,
     "source": "shopify_api",
@@ -342,7 +354,7 @@
     "url": "https://www.chemistwarehouse.com.au/buy/124019/ego-qv-ceramides-moisturising-lotion-1-25l-exclusive-size",
     "targetPrice": 25,
     "notes": "",
-    "lastChecked": "2026-07-19T23:49:45.081284+00:00",
+    "lastChecked": "2026-07-20T23:48:38.193318+00:00",
     "lastError": "Price not found",
     "currentPrice": 28.99,
     "previousPrice": 28.99,
@@ -403,7 +415,7 @@
     "url": "https://www.chemistwarehouse.com.au/buy/124017/ego-qv-ceramides-cleanser-1-25kg-exclusive-size",
     "targetPrice": 25,
     "notes": "1.25kg Exclusive Size",
-    "lastChecked": "2026-07-19T23:49:49.746233+00:00",
+    "lastChecked": "2026-07-20T23:48:42.865259+00:00",
     "lastError": "Price not found",
     "currentPrice": 27.99,
     "previousPrice": 27.99,
@@ -458,14 +470,18 @@
       {
         "date": "2026-07-17",
         "price": 14.99
+      },
+      {
+        "date": "2026-07-20",
+        "price": 14.99
       }
     ],
     "name": "Mixa Ceramide Protect Strengthening Cream 400ml",
     "url": "https://www.chemistwarehouse.com.au/buy/150475/mixa-ceramide-protect-strengthening-cream-400ml",
     "targetPrice": 10,
     "notes": "",
-    "lastChecked": "2026-07-19T23:49:54.411218+00:00",
-    "lastError": "Price not found",
+    "lastChecked": "2026-07-20T23:48:48.608620+00:00",
+    "lastError": null,
     "currentPrice": 14.99,
     "previousPrice": 14.99,
     "source": "json_ld"
@@ -551,13 +567,17 @@
       {
         "date": "2026-07-19",
         "price": 45.0
+      },
+      {
+        "date": "2026-07-20",
+        "price": 45.0
       }
     ],
     "name": "Yeti Rambler 14oz Ceramic Lined Mug",
     "url": "https://au.yeti.com/products/rambler-14-oz-ceramic-lined-mug?variant=42228314570886",
     "targetPrice": 35,
     "notes": "14oz only",
-    "lastChecked": "2026-07-19T23:49:56.594932+00:00",
+    "lastChecked": "2026-07-20T23:48:50.776085+00:00",
     "currentPrice": 45.0,
     "previousPrice": 45.0,
     "source": "shopify_api",
@@ -644,13 +664,17 @@
       {
         "date": "2026-07-19",
         "price": 299.99
+      },
+      {
+        "date": "2026-07-20",
+        "price": 299.99
       }
     ],
     "name": "Nanoleaf LED Light Therapy Face Mask",
     "url": "https://au-shop.nanoleaf.me/products/face-mask",
     "targetPrice": 200,
     "notes": "NLEDK00-1TFM",
-    "lastChecked": "2026-07-19T23:50:02.343701+00:00",
+    "lastChecked": "2026-07-20T23:48:56.441262+00:00",
     "currentPrice": 299.99,
     "previousPrice": 299.99,
     "source": "shopify_api",
@@ -733,13 +757,17 @@
       {
         "date": "2026-07-19",
         "price": 39.99
+      },
+      {
+        "date": "2026-07-20",
+        "price": 39.99
       }
     ],
     "name": "Thirdreality Smart Soil Moisture Sensor",
     "url": "https://thirdreality.com/product/smart-soil-moisture-sensor/",
     "targetPrice": 20,
     "notes": "",
-    "lastChecked": "2026-07-19T23:50:08.007866+00:00",
+    "lastChecked": "2026-07-20T23:49:01.934223+00:00",
     "currentPrice": 39.99,
     "previousPrice": 39.99,
     "source": "css:.price-item--regular",
@@ -826,13 +854,17 @@
       {
         "date": "2026-07-19",
         "price": 3.0
+      },
+      {
+        "date": "2026-07-20",
+        "price": 3.0
       }
     ],
     "name": "Home Assistant ZWA-2 Connect Z-Wave Adapter",
     "url": "https://www.smarthome.com.au/product/home-assistant-zwa-2-connect-z-wave-usb-antenna/",
     "targetPrice": 90,
     "notes": "NC-ZWA-9734",
-    "lastChecked": "2026-07-19T23:50:13.512619+00:00",
+    "lastChecked": "2026-07-20T23:49:07.573954+00:00",
     "currentPrice": 3.0,
     "previousPrice": 3.0,
     "source": "meta_tag",
@@ -919,13 +951,17 @@
       {
         "date": "2026-07-19",
         "price": 5.0
+      },
+      {
+        "date": "2026-07-20",
+        "price": 5.0
       }
     ],
     "name": "Home Assistant ZBT-2 Connect Zigbee / Thread Adapter",
     "url": "https://www.smarthome.com.au/product/home-assistant-zbt-2-connect-zigbee-thread-adapter/",
     "targetPrice": 80,
     "notes": "NC-ZBT-9741",
-    "lastChecked": "2026-07-19T23:50:19.049880+00:00",
+    "lastChecked": "2026-07-20T23:49:13.120379+00:00",
     "currentPrice": 5.0,
     "previousPrice": 5.0,
     "source": "meta_tag",
@@ -1012,13 +1048,17 @@
       {
         "date": "2026-07-19",
         "price": 229.0
+      },
+      {
+        "date": "2026-07-20",
+        "price": 229.0
       }
     ],
     "name": "TRMNL-X E-ink Display",
     "url": "https://shop.trmnl.com/collections/devices/products/trmnl-x?variant=51682231943473",
     "targetPrice": 300,
     "notes": "",
-    "lastChecked": "2026-07-19T23:50:21.355503+00:00",
+    "lastChecked": "2026-07-20T23:49:15.351541+00:00",
     "currentPrice": 229.0,
     "previousPrice": 229.0,
     "source": "shopify_api",
@@ -1105,13 +1145,17 @@
       {
         "date": "2026-07-19",
         "price": 67.0
+      },
+      {
+        "date": "2026-07-20",
+        "price": 67.0
       }
     ],
     "name": "Everything Presence Pro",
     "url": "https://shop.everythingsmart.io/products/everything-presence-pro",
     "targetPrice": 125,
     "notes": "TriSense - mmWave + PIR Sensor",
-    "lastChecked": "2026-07-19T23:50:23.567610+00:00",
+    "lastChecked": "2026-07-20T23:49:17.562029+00:00",
     "currentPrice": 67.0,
     "previousPrice": 67.0,
     "source": "shopify_api",
@@ -1194,13 +1238,17 @@
       {
         "date": "2026-07-19",
         "price": 158.0
+      },
+      {
+        "date": "2026-07-20",
+        "price": 158.0
       }
     ],
     "name": "Shelly Pro 3EM",
     "url": "https://www.shelly.com/products/shelly-pro-3em-x1",
     "targetPrice": 225,
     "notes": "",
-    "lastChecked": "2026-07-19T23:50:25.875203+00:00",
+    "lastChecked": "2026-07-20T23:49:19.883667+00:00",
     "currentPrice": 158.0,
     "previousPrice": 158.0,
     "source": "shopify_api",
@@ -1287,13 +1335,17 @@
       {
         "date": "2026-07-19",
         "price": 116.0
+      },
+      {
+        "date": "2026-07-20",
+        "price": 116.0
       }
     ],
     "name": "Shelly 2PM Gen4 4-pack",
     "url": "https://www.shelly.com/products/shelly-2pm-gen4-4-pack?variant=58252744753501",
     "targetPrice": 200,
     "notes": "S4SW-002P16EU",
-    "lastChecked": "2026-07-19T23:50:28.124363+00:00",
+    "lastChecked": "2026-07-20T23:49:22.115736+00:00",
     "currentPrice": 116.0,
     "previousPrice": 116.0,
     "source": "shopify_api",
@@ -1388,15 +1440,19 @@
       {
         "date": "2026-07-19",
         "price": 8.0
+      },
+      {
+        "date": "2026-07-20",
+        "price": 8.8
       }
     ],
     "name": "Adafruit LTR390 UV Light Sensor",
     "url": "https://core-electronics.com.au/adafruit-ltr390-uv-light-sensor-stemma-qt-qwiic.html",
     "targetPrice": 10,
     "notes": "ADA4831",
-    "lastChecked": "2026-07-19T23:50:33.977404+00:00",
-    "currentPrice": 8.0,
-    "previousPrice": 8.8,
+    "lastChecked": "2026-07-20T23:49:27.759631+00:00",
+    "currentPrice": 8.8,
+    "previousPrice": 8.0,
     "source": "meta_tag",
     "lastError": null
   },
@@ -1489,13 +1545,17 @@
       {
         "date": "2026-07-19",
         "price": 149.95
+      },
+      {
+        "date": "2026-07-20",
+        "price": 149.95
       }
     ],
     "name": "Core Electronics 5M RGB LED Strip APA102c 60/m Weatherproof",
     "url": "https://core-electronics.com.au/5m-rgb-led-strip-apa102c-60-per-meter-black-strip-weatherproof.html",
     "targetPrice": 125,
     "notes": "CE05985",
-    "lastChecked": "2026-07-19T23:50:39.562732+00:00",
+    "lastChecked": "2026-07-20T23:49:33.375149+00:00",
     "currentPrice": 149.95,
     "previousPrice": 149.95,
     "source": "meta_tag",
@@ -1590,15 +1650,19 @@
       {
         "date": "2026-07-19",
         "price": 149.95
+      },
+      {
+        "date": "2026-07-20",
+        "price": 164.95
       }
     ],
     "name": "Pimoroni Inky Impression 7.3\" E-Ink Display",
     "url": "https://core-electronics.com.au/pimoroni-inky-impression-e-ink-screen-73-for-pi.html",
     "targetPrice": 150,
     "notes": "PIM773",
-    "lastChecked": "2026-07-19T23:50:45.132984+00:00",
-    "currentPrice": 149.95,
-    "previousPrice": 164.95,
+    "lastChecked": "2026-07-20T23:49:38.975040+00:00",
+    "currentPrice": 164.95,
+    "previousPrice": 149.95,
     "source": "meta_tag",
     "lastError": null
   }
